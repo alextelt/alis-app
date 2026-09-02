@@ -1,0 +1,207 @@
+.votes-subtitle {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  margin-top: 12px;
+}
+
+.vote-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 15px 16px;
+  margin-bottom: 10px;
+}
+
+.vote-card.mine {
+  border-color: var(--vert-bright);
+  background: linear-gradient(180deg, rgba(74, 93, 58, 0.12), var(--bg-panel) 40%);
+}
+
+.vote-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.vote-who {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Fraunces', serif;
+  font-size: 13px;
+  color: var(--gold-bright);
+  flex-shrink: 0;
+}
+
+.vote-name {
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+.vote-quest {
+  font-family: 'Fraunces', serif;
+  font-size: 14.5px;
+  color: var(--text);
+}
+
+.vote-xp {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gold-bright);
+  background: rgba(169, 132, 63, 0.12);
+  border: 1px solid rgba(169, 132, 63, 0.3);
+  padding: 3px 9px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.vote-desc {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  line-height: 1.45;
+  margin: -6px 0 10px;
+  padding-left: 42px;
+}
+
+.vote-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.vote-track {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.vote-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--vert) 0%, var(--vert-bright) 100%);
+  transition: width 0.3s ease;
+}
+
+.vote-count {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.vote-voters {
+  font-size: 11.5px;
+  color: var(--text-dim);
+}
+
+.vote-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.vote-timer {
+  font-size: 11px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.vote-timer.warn { color: var(--error-text); }
+
+.vote-action-btn {
+  flex-shrink: 0;
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.vote-action-btn.voter {
+  background: var(--gold);
+  border: 1px solid var(--gold);
+  color: #1A1410;
+}
+
+.vote-action-btn.voter:hover:not(:disabled) { background: var(--gold-bright); }
+.vote-action-btn.voter:disabled { opacity: 0.6; cursor: default; }
+
+.vote-action-btn.deja-vote {
+  background: none;
+  border: 1px solid var(--vert-bright);
+  color: var(--vert-bright);
+  cursor: default;
+}
+
+.vote-action-btn.retirer {
+  background: none;
+  border: 1px solid var(--error);
+  color: var(--error-text);
+}
+
+.vote-action-btn.retirer:hover:not(:disabled) { background: rgba(122, 49, 49, 0.15); }
+.vote-action-btn.retirer:disabled { opacity: 0.6; cursor: default; }
+
+/* Les styles .overlay/.modal génériques sont maintenant dans theme.css */
+
+.modal-icon {
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 16px;
+  border: 1.5px solid var(--gold);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-icon svg { width: 20px; height: 20px; stroke: var(--gold-bright); }
+
+.modal p {
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.6;
+  margin: 0 0 22px;
+}
+
+.modal h2 .who { color: var(--gold-bright); }
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.modal-actions button {
+  flex: 1;
+  padding: 11px;
+  border-radius: 3px;
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-confirmer {
+  background: var(--vert);
+  border: 1px solid var(--vert);
+  color: #E8DCC4;
+}
+
+.btn-confirmer:hover:not(:disabled) { background: var(--vert-bright); }
+.btn-confirmer:disabled { opacity: 0.6; cursor: default; }
