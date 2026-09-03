@@ -136,7 +136,7 @@ export default function VotesScreen() {
                     onClick={() => retirerTentative(t)}
                     disabled={actionEnCours === t.id}
                   >
-                    Retirer ma quête
+                    ✕ Retirer ma quête
                   </button>
                 ) : dejaVote ? (
                   <button className="vote-action-btn deja-vote" disabled>Déjà voté</button>

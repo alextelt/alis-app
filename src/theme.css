@@ -15,6 +15,13 @@
   --vert-bright: #6E8A54;
 }
 
+[data-daltonien="true"] {
+  --vert: #0072B2;
+  --vert-bright: #56B4E9;
+  --error: #E69F00;
+  --error-text: #E69F00;
+}
+
 * {
   box-sizing: border-box;
 }

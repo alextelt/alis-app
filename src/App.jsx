@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AuthProvider, useAuth } from './AuthContext'
 import LoginScreen from './screens/LoginScreen'
 import WaitingScreen from './screens/WaitingScreen'
@@ -14,6 +14,10 @@ import './theme.css'
 function AppContent() {
   const { session, profile, profileLoading, estConnecte, estApprouve } = useAuth()
   const [ecranActif, setEcranActif] = useState('quetes')
+
+  useEffect(() => {
+    document.documentElement.dataset.daltonien = profile?.mode_daltonien ? 'true' : 'false'
+  }, [profile?.mode_daltonien])
 
   // Session pas encore vérifiée (tout premier chargement)
   if (session === undefined) {

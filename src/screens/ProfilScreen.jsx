@@ -20,6 +20,7 @@ export default function ProfilScreen() {
   const [avatarEnCours, setAvatarEnCours] = useState(false)
   const [vueAmis, setVueAmis] = useState(false)
   const [nbDemandesRecues, setNbDemandesRecues] = useState(0)
+  const [daltonienEnCours, setDaltonienEnCours] = useState(false)
 
   const charger = useCallback(async () => {
     setErreur(null)
@@ -94,6 +95,20 @@ export default function ProfilScreen() {
       return
     }
     charger()
+  }
+
+  async function changerModeDaltonien(actif) {
+    setDaltonienEnCours(true)
+    const { error } = await supabase
+      .from('profiles')
+      .update({ mode_daltonien: actif })
+      .eq('id', user.id)
+    setDaltonienEnCours(false)
+    if (error) {
+      alert('Impossible de changer ce réglage : ' + error.message)
+      return
+    }
+    rafraichirProfil()
   }
 
   async function changerAvatar(code) {
@@ -214,6 +229,17 @@ export default function ProfilScreen() {
           ))}
         </div>
       )}
+
+      <div className="section-title">Accessibilité</div>
+      <label className="daltonien-toggle">
+        <input
+          type="checkbox"
+          checked={!!profile.mode_daltonien}
+          onChange={(e) => changerModeDaltonien(e.target.checked)}
+          disabled={daltonienEnCours}
+        />
+        Mode daltonien (couleurs adaptées)
+      </label>
 
       <button className="amis-btn" onClick={() => setVueAmis(true)} type="button">
         Mes amis

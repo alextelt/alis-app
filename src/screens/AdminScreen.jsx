@@ -125,14 +125,14 @@ export default function AdminScreen() {
                   onClick={() => traiterCompte(compte.id, 'rejeté')}
                   disabled={actionEnCours === compte.id}
                 >
-                  Rejeter
+                  ✕ Rejeter
                 </button>
                 <button
                   className="admin-btn approve"
                   onClick={() => traiterCompte(compte.id, 'approuvé')}
                   disabled={actionEnCours === compte.id}
                 >
-                  Approuver
+                  ✓ Approuver
                 </button>
               </div>
             </div>
@@ -166,14 +166,14 @@ export default function AdminScreen() {
                   onClick={() => traiterQuete(quete, 'rejetée')}
                   disabled={actionEnCours === quete.id}
                 >
-                  Rejeter
+                  ✕ Rejeter
                 </button>
                 <button
                   className="admin-btn approve"
                   onClick={() => traiterQuete(quete, 'validée')}
                   disabled={actionEnCours === quete.id}
                 >
-                  Ajouter au catalogue
+                  ✓ Ajouter au catalogue
                 </button>
               </div>
             </div>
