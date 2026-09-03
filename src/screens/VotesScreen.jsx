@@ -116,9 +116,9 @@ export default function VotesScreen() {
 
               <div className="vote-progress-row">
                 <div className="vote-track">
-                  <div className="vote-fill" style={{ width: `${Math.min(100, (nbVotes / 4) * 100)}%` }}></div>
+                  <div className="vote-fill" style={{ width: `${Math.min(100, (nbVotes / 3) * 100)}%` }}></div>
                 </div>
-                <span className="vote-count">{nbVotes}/4</span>
+                <span className="vote-count">{nbVotes}/3</span>
               </div>
 
               <div className="vote-voters">
@@ -182,7 +182,7 @@ function ModaleConfirmationVote({ tentative, onAnnuler, onConfirmer, enCours }) 
         <h2>Confirmer la quête de <span className="who">{tentative.joueur.pseudo}</span> ?</h2>
         <p>
           Tu confirmes avoir vu {tentative.joueur.pseudo} réussir « {tentative.quete.titre} ».
-          Ton vote compte pour {nbVotesApres}/4.
+          Ton vote compte pour {nbVotesApres}/3.
         </p>
         <div className="modal-actions">
           <button className="btn-annuler" onClick={onAnnuler} disabled={enCours}>Annuler</button>
