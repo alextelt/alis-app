@@ -1,3 +1,59 @@
+.propose-row {
+  padding: 14px 18px 0;
+}
+
+.propose-btn {
+  width: 100%;
+  background: none;
+  border: 1px dashed var(--gold);
+  color: var(--gold-bright);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.propose-btn:hover { background: rgba(169, 132, 63, 0.1); }
+
+.propose-modal {
+  max-width: 380px;
+  text-align: left;
+}
+
+.propose-modal h2 {
+  text-align: center;
+}
+
+.propose-modal form {
+  max-height: 62vh;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.field textarea,
+.field select {
+  width: 100%;
+  background: #100D0C;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 11px 12px;
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 14.5px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.field textarea {
+  resize: vertical;
+}
+
+.field textarea:focus,
+.field select:focus {
+  border-color: var(--gold);
+}
+
 .filters {
   display: flex;
   gap: 8px;

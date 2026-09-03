@@ -12,6 +12,8 @@ export default function QuetesScreen() {
   const [erreur, setErreur] = useState(null)
   const [filtre, setFiltre] = useState('toutes')
   const [lancementEnCours, setLancementEnCours] = useState(null)
+  const [modaleProposerOuverte, setModaleProposerOuverte] = useState(false)
+  const [soumissionEnCours, setSoumissionEnCours] = useState(false)
 
   const charger = useCallback(async () => {
     setErreur(null)
@@ -72,6 +74,26 @@ export default function QuetesScreen() {
     charger()
   }
 
+  async function proposerQuete({ titre, description, xp_recompense, difficulte, categorie }) {
+    setSoumissionEnCours(true)
+    const { error } = await supabase.from('quetes').insert({
+      titre,
+      description,
+      xp_recompense,
+      difficulte,
+      categorie,
+      statut_catalogue: 'proposée',
+      proposee_par: user.id,
+    })
+    setSoumissionEnCours(false)
+    if (error) {
+      alert('Impossible de proposer cette quête : ' + error.message)
+      return
+    }
+    alert('Ta quête a été soumise, elle apparaîtra dans le catalogue une fois validée par un admin.')
+    setModaleProposerOuverte(false)
+  }
+
   const quetesFiltrees = useMemo(() => {
     if (filtre === 'toutes') return quetes
     return quetes.filter((q) => q.categorie === filtre)
@@ -97,6 +119,16 @@ export default function QuetesScreen() {
 
   return (
     <>
+      <div className="propose-row">
+        <button
+          className="propose-btn"
+          onClick={() => setModaleProposerOuverte(true)}
+          type="button"
+        >
+          + Proposer une quête
+        </button>
+      </div>
+
       <div className="filters">
         <button
           className={`filter-btn ${filtre === 'toutes' ? 'active' : ''}`}
@@ -139,7 +171,98 @@ export default function QuetesScreen() {
           )
         })}
       </div>
+
+      {modaleProposerOuverte && (
+        <ModaleProposerQuete
+          onFermer={() => setModaleProposerOuverte(false)}
+          onSoumettre={proposerQuete}
+          enCours={soumissionEnCours}
+        />
+      )}
     </>
+  )
+}
+
+function ModaleProposerQuete({ onFermer, onSoumettre, enCours }) {
+  const [titre, setTitre] = useState('')
+  const [description, setDescription] = useState('')
+  const [xp, setXp] = useState(3)
+  const [difficulte, setDifficulte] = useState('facile')
+  const [categorie, setCategorie] = useState(ORDRE_CATEGORIES[0])
+
+  function gererSoumission(e) {
+    e.preventDefault()
+    const xpBorne = Math.min(15, Math.max(1, Number(xp) || 1))
+    onSoumettre({
+      titre: titre.trim(),
+      description: description.trim(),
+      xp_recompense: xpBorne,
+      difficulte,
+      categorie,
+    })
+  }
+
+  return (
+    <div className="overlay" onClick={onFermer}>
+      <div className="modal propose-modal" onClick={(e) => e.stopPropagation()}>
+        <h2>Proposer une quête</h2>
+        <form onSubmit={gererSoumission}>
+          <div className="field">
+            <label>Titre</label>
+            <input
+              type="text"
+              value={titre}
+              onChange={(e) => setTitre(e.target.value)}
+              required
+            />
+          </div>
+          <div className="field">
+            <label>Description</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+              required
+            />
+          </div>
+          <div className="field">
+            <label>XP proposé</label>
+            <input
+              type="number"
+              min={1}
+              max={15}
+              value={xp}
+              onChange={(e) => setXp(e.target.value)}
+              required
+            />
+          </div>
+          <div className="field">
+            <label>Difficulté</label>
+            <select value={difficulte} onChange={(e) => setDifficulte(e.target.value)}>
+              {Object.keys(NIVEAUX_DIFFICULTE).map((d) => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+          </div>
+          <div className="field">
+            <label>Catégorie</label>
+            <select value={categorie} onChange={(e) => setCategorie(e.target.value)}>
+              {ORDRE_CATEGORIES.map((cat) => (
+                <option key={cat} value={cat}>{LABELS_CATEGORIE[cat]}</option>
+              ))}
+            </select>
+          </div>
+          <div className="modal-actions">
+            <button type="button" className="btn-annuler" onClick={onFermer} disabled={enCours}>
+              Annuler
+            </button>
+            <button type="submit" className="btn-confirmer" disabled={enCours}>
+              {enCours ? 'Envoi...' : 'Proposer'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   )
 }
 
