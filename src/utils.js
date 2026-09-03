@@ -58,53 +58,18 @@ export const ORDRE_CATEGORIES = ['victoires', 'enchainements', 'resilience', 'de
 
 export const NIVEAUX_DIFFICULTE = { facile: 1, moyen: 2, difficile: 3 }
 
-// Palette d'avatars : emoji + couleur de fond, thème médiéval-fantastique / pride
-export const AVATARS = [
-  { emoji: '🦄', bg: '#7B4B9E' },
-  { emoji: '🦄', bg: '#C9598A' },
-  { emoji: '🦄', bg: '#4A8AA8' },
-  { emoji: '🐉', bg: '#4A5D3A' },
-  { emoji: '🐉', bg: '#7A3131' },
-  { emoji: '🐲', bg: '#A9843F' },
-  { emoji: '🐲', bg: '#3A5A6E' },
-  { emoji: '⚔️', bg: '#4A3B28' },
-  { emoji: '🛡️', bg: '#5A4A2E' },
-  { emoji: '🏰', bg: '#6E5B3E' },
-  { emoji: '👑', bg: '#A9843F' },
-  { emoji: '👑', bg: '#8B3E5A' },
-  { emoji: '🧙', bg: '#5A3E7A' },
-  { emoji: '🧙‍♀️', bg: '#3E5A7A' },
-  { emoji: '🧙‍♂️', bg: '#5A7A3E' },
-  { emoji: '🧚', bg: '#C9598A' },
-  { emoji: '🧚‍♀️', bg: '#598AC9' },
-  { emoji: '🧚‍♂️', bg: '#59C9A8' },
-  { emoji: '🧝', bg: '#3E7A5A' },
-  { emoji: '🧝‍♀️', bg: '#7A5A3E' },
-  { emoji: '🧞', bg: '#7A3E5A' },
-  { emoji: '🧜', bg: '#3E7A9E' },
-  { emoji: '✨', bg: '#8B6F3E' },
-  { emoji: '🌟', bg: '#6E5B3E' },
-  { emoji: '⭐', bg: '#4A3B28' },
-  { emoji: '🌈', bg: '#7B4B9E' },
-  { emoji: '🏳️‍🌈', bg: '#5A3E7A' },
-  { emoji: '🏳️‍⚧️', bg: '#598AC9' },
-  { emoji: '💜', bg: '#5A3E7A' },
-  { emoji: '💎', bg: '#3E7A9E' },
-  { emoji: '🔮', bg: '#5A3E7A' },
-  { emoji: '🌹', bg: '#7A3145' },
-  { emoji: '🥚', bg: '#4A5D3A' },
-  { emoji: '🔥', bg: '#7A3131' },
-  { emoji: '🌙', bg: '#3E3E6E' },
-  { emoji: '🪄', bg: '#7A5A3E' },
-  { emoji: '🧪', bg: '#3E7A5A' },
-  { emoji: '📜', bg: '#6E5B3E' },
-  { emoji: '🗝️', bg: '#8B6F3E' },
-  { emoji: '🎭', bg: '#5A3E5A' },
-]
+// Palette d'avatars : créature + couleur de fond + badge optionnel, thème médiéval-fantastique / pride
+export const AVATAR_CREATURES = ['🦄', '🐉', '🐲', '🧙', '🧙‍♀️', '🧙‍♂️', '🧝', '🧝‍♀️', '🧝‍♂️', '🧚', '🧚‍♀️', '🧚‍♂️', '🧞', '🧞‍♀️', '🧞‍♂️', '🧜', '🧜‍♀️', '🧜‍♂️']
 
+export const AVATAR_COLORS = ['#7B4B9E', '#C9598A', '#4A8AA8', '#4A5D3A', '#7A3131', '#A9843F', '#3A5A6E', '#598AC9', '#59C9A8', '#3E7A9E', '#5A3E7A', '#8B6F3E']
+
+export const AVATAR_BADGES = [null, '✨', '🌟', '⭐', '👑', '💎', '🔥', '🌈', '🏳️‍🌈', '🏳️‍⚧️', '💜', '🗡️', '🛡️', '🔮', '🌙', '🪄', '🌹']
+
+// Accepte le nouveau format "creature|couleur|badge" et l'ancien "emoji|couleur" (sans badge)
 export function parserAvatar(avatarUrl) {
   if (!avatarUrl) return null
-  const [emoji, bg] = avatarUrl.split('|')
-  if (!emoji || !bg) return null
-  return { emoji, bg }
+  const parties = avatarUrl.split('|')
+  const [creature, bg, badge] = parties
+  if (!creature || !bg) return null
+  return { creature, bg, badge: badge || null }
 }
