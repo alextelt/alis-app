@@ -158,5 +158,10 @@ function traduireErreur(message) {
   if (message.includes('Invalid login credentials')) return 'Email ou mot de passe incorrect.'
   if (message.includes('already registered')) return 'Un compte existe déjà avec cet email.'
   if (message.includes('Password should be')) return 'Mot de passe trop court (6 caractères minimum).'
+  if (
+    message.includes('profiles_pseudo_key') ||
+    message.includes('duplicate key') ||
+    message.includes('Database error saving new user')
+  ) return 'Ce pseudo est déjà pris, choisis-en un autre.'
   return message
 }

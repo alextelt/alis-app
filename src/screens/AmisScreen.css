@@ -1,0 +1,200 @@
+.retour-btn {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 13px;
+  padding: 0;
+  margin-bottom: 4px;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.retour-btn:hover { color: var(--gold-bright); }
+
+.ami-search-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.ami-search-form input {
+  flex: 1;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 10px 12px;
+  color: var(--text);
+  font-size: 13.5px;
+  font-family: 'Inter', sans-serif;
+}
+
+.ami-search-form input:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+
+.ami-search-form button {
+  flex-shrink: 0;
+  background: var(--gold);
+  border: 1px solid var(--gold);
+  color: #1A1410;
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 0 16px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.ami-search-form button:hover:not(:disabled) { background: var(--gold-bright); }
+.ami-search-form button:disabled { opacity: 0.6; cursor: default; }
+
+.ami-search-error {
+  font-size: 12px;
+  color: var(--error-text);
+  margin: -2px 0 4px;
+}
+
+.ami-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 12px 14px;
+  margin-bottom: 4px;
+}
+
+.ami-card-top {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.ami-card-name {
+  font-family: 'Fraunces', serif;
+  font-weight: 600;
+  font-size: 14.5px;
+}
+
+.ami-status {
+  font-size: 12px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.amis-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.ami-request-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 10px 14px;
+}
+
+.ami-request-name {
+  flex: 1;
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+.ami-request-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.ami-action-btn {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 7px 13px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.ami-action-btn.envoyer,
+.ami-action-btn.accepter {
+  background: var(--vert);
+  border: 1px solid var(--vert);
+  color: #E8DCC4;
+}
+
+.ami-action-btn.envoyer:hover:not(:disabled),
+.ami-action-btn.accepter:hover:not(:disabled) { background: var(--vert-bright); }
+
+.ami-action-btn.refuser,
+.ami-action-btn.annuler,
+.ami-action-btn.retirer {
+  background: none;
+  border: 1px solid var(--error);
+  color: var(--error-text);
+}
+
+.ami-action-btn.refuser:hover:not(:disabled),
+.ami-action-btn.annuler:hover:not(:disabled),
+.ami-action-btn.retirer:hover:not(:disabled) { background: rgba(122, 49, 49, 0.15); }
+
+.ami-action-btn:disabled { opacity: 0.6; cursor: default; }
+
+.ami-friend-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 13px 14px;
+}
+
+.ami-friend-top {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.ami-friend-info { flex: 1; }
+
+.ami-friend-name {
+  font-family: 'Fraunces', serif;
+  font-weight: 600;
+  font-size: 14.5px;
+}
+
+.ami-friend-level {
+  font-size: 11.5px;
+  color: var(--text-dim);
+  margin-top: 1px;
+}
+
+.ami-friend-competences {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+}
+
+.ami-friend-competence {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.ami-friend-competence-name {
+  font-weight: 500;
+  color: var(--text);
+}
+
+.ami-friend-competence-effect {
+  color: var(--text-dim);
+  text-align: right;
+}

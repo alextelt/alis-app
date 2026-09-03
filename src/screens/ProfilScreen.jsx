@@ -4,6 +4,7 @@ import { useAuth } from '../AuthContext'
 import { calculerNiveau, estAujourdhui } from '../utils'
 import Avatar from '../components/Avatar'
 import AvatarPicker from '../components/AvatarPicker'
+import AmisScreen from './AmisScreen'
 import './ProfilScreen.css'
 
 export default function ProfilScreen() {
@@ -17,6 +18,8 @@ export default function ProfilScreen() {
   const [actionEnCours, setActionEnCours] = useState(null)
   const [pickerOuvert, setPickerOuvert] = useState(false)
   const [avatarEnCours, setAvatarEnCours] = useState(false)
+  const [vueAmis, setVueAmis] = useState(false)
+  const [nbDemandesRecues, setNbDemandesRecues] = useState(0)
 
   const charger = useCallback(async () => {
     setErreur(null)
@@ -58,6 +61,19 @@ export default function ProfilScreen() {
   useEffect(() => {
     charger()
   }, [charger])
+
+  const chargerNbDemandes = useCallback(async () => {
+    const { count } = await supabase
+      .from('amities')
+      .select('id', { count: 'exact', head: true })
+      .eq('destinataire_id', user.id)
+      .eq('statut', 'en_attente')
+    setNbDemandesRecues(count ?? 0)
+  }, [user.id])
+
+  useEffect(() => {
+    chargerNbDemandes()
+  }, [chargerNbDemandes])
 
   const { niveau, xpDansNiveauActuel, xpPourProchainNiveau, progression } = calculerNiveau(profile.xp_total)
   const alisDepenses = competencesDebloquees.reduce((s, p) => s + p.points_investis, 0)
@@ -110,6 +126,17 @@ export default function ProfilScreen() {
 
   if (erreur) {
     return <div className="error-screen">Erreur : {erreur}</div>
+  }
+
+  if (vueAmis) {
+    return (
+      <AmisScreen
+        onRetour={() => {
+          setVueAmis(false)
+          chargerNbDemandes()
+        }}
+      />
+    )
   }
 
   return (
@@ -187,6 +214,11 @@ export default function ProfilScreen() {
           ))}
         </div>
       )}
+
+      <button className="amis-btn" onClick={() => setVueAmis(true)} type="button">
+        Mes amis
+        {nbDemandesRecues > 0 && <span className="amis-badge">{nbDemandesRecues}</span>}
+      </button>
 
       <button className="logout-btn" onClick={deconnexion}>Se déconnecter</button>
 
