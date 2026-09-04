@@ -303,6 +303,23 @@
   word-break: break-word;
 }
 
+.cp-cumul-pill {
+  background: var(--gold-bright);
+  color: #1A1410;
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  font-size: 17px;
+  padding: 3px 12px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  animation: cp-cumul-pulse 1s ease-in-out infinite;
+}
+
+@keyframes cp-cumul-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
 .cp-score-value {
   font-family: 'Fraunces', serif;
   font-weight: 700;

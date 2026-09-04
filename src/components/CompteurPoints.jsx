@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../AuthContext'
 import './CompteurPoints.css'
 
 const COULEURS_JOUEURS = ['#4CAF50', '#2196F3', '#F44336', '#9C27B0', '#FF9800', '#009688', '#E91E63', '#3F51B5']
 const NOMBRES_RAPIDES = [1, 2, 3, 4, 5, 6, 7]
+const DELAI_CUMUL = 1600
 
 export default function CompteurPoints({ onFermer }) {
   const { user } = useAuth()
@@ -16,6 +17,9 @@ export default function CompteurPoints({ onFermer }) {
   const [joueurs, setJoueurs] = useState([])
   const [partieId, setPartieId] = useState(null)
   const [creationEnCours, setCreationEnCours] = useState(false)
+  const [cumulEnCours, setCumulEnCours] = useState({})
+  const cumulRef = useRef({})
+  const timersRef = useRef({})
 
   const chargerParties = useCallback(async () => {
     setChargementAccueil(true)
@@ -48,6 +52,13 @@ export default function CompteurPoints({ onFermer }) {
         if (error) console.error('Erreur de sauvegarde de la partie :', error)
       })
   }, [joueurs, etape, partieId])
+
+  // Nettoie tous les timers de cumul en attente au démontage du composant
+  useEffect(() => {
+    return () => {
+      Object.values(timersRef.current).forEach((id) => clearTimeout(id))
+    }
+  }, [])
 
   function incrementerNombre() {
     setNombreJoueurs((n) => Math.min(12, n + 1))
@@ -94,17 +105,36 @@ export default function CompteurPoints({ onFermer }) {
     setEtape('jeu')
   }
 
-  function ajusterScore(id, delta) {
-    setJoueurs((prev) =>
-      prev.map((j) =>
-        j.id === id
-          ? { ...j, score: j.score + delta, historique: [{ delta, ts: Date.now() }, ...j.historique] }
-          : j
-      )
-    )
+  function ajouterAuCumul(joueurId, delta) {
+    const total = (cumulRef.current[joueurId] || 0) + delta
+    cumulRef.current[joueurId] = total
+    setCumulEnCours((prev) => ({ ...prev, [joueurId]: total }))
+
+    if (timersRef.current[joueurId]) {
+      clearTimeout(timersRef.current[joueurId])
+    }
+
+    timersRef.current[joueurId] = setTimeout(() => {
+      const montant = cumulRef.current[joueurId] || 0
+      cumulRef.current[joueurId] = 0
+      delete timersRef.current[joueurId]
+
+      setCumulEnCours((prev) => ({ ...prev, [joueurId]: 0 }))
+
+      if (montant !== 0) {
+        setJoueurs((prev) =>
+          prev.map((j) =>
+            j.id === joueurId
+              ? { ...j, score: j.score + montant, historique: [{ delta: montant, ts: Date.now() }, ...j.historique] }
+              : j
+          )
+        )
+      }
+    }, DELAI_CUMUL)
   }
 
   function reprendrePartie(partie) {
+    annulerCumulsEnAttente()
     setJoueurs(partie.joueurs || [])
     setPartieId(partie.id)
     setNomPartie(partie.nom_partie || '')
@@ -121,7 +151,15 @@ export default function CompteurPoints({ onFermer }) {
     setPartiesSauvegardees((prev) => prev.filter((p) => p.id !== id))
   }
 
+  function annulerCumulsEnAttente() {
+    Object.values(timersRef.current).forEach((id) => clearTimeout(id))
+    timersRef.current = {}
+    cumulRef.current = {}
+    setCumulEnCours({})
+  }
+
   function retourAccueil() {
+    annulerCumulsEnAttente()
     setJoueurs([])
     setPartieId(null)
     setNomPartie('')
@@ -264,19 +302,24 @@ export default function CompteurPoints({ onFermer }) {
           </div>
 
           <div className="cp-scores-grid">
-            {joueurs.map((j) => (
+            {joueurs.map((j) => {
+              const cumul = cumulEnCours[j.id] || 0
+              return (
               <div key={j.id} className="cp-score-card" style={{ background: j.couleur }}>
                 <div className="cp-score-name">{j.nom}</div>
                 <div className="cp-score-buttons">
-                  <button onClick={() => ajusterScore(j.id, -10)} type="button">−10</button>
-                  <button onClick={() => ajusterScore(j.id, -5)} type="button">−5</button>
-                  <button onClick={() => ajusterScore(j.id, -1)} type="button">−1</button>
+                  <button onClick={() => ajouterAuCumul(j.id, -10)} type="button">−10</button>
+                  <button onClick={() => ajouterAuCumul(j.id, -5)} type="button">−5</button>
+                  <button onClick={() => ajouterAuCumul(j.id, -1)} type="button">−1</button>
                 </div>
+                {cumul !== 0 && (
+                  <div className="cp-cumul-pill">{cumul > 0 ? `+${cumul}` : cumul}</div>
+                )}
                 <div className="cp-score-value">{j.score}</div>
                 <div className="cp-score-buttons">
-                  <button onClick={() => ajusterScore(j.id, 1)} type="button">+1</button>
-                  <button onClick={() => ajusterScore(j.id, 5)} type="button">+5</button>
-                  <button onClick={() => ajusterScore(j.id, 10)} type="button">+10</button>
+                  <button onClick={() => ajouterAuCumul(j.id, 1)} type="button">+1</button>
+                  <button onClick={() => ajouterAuCumul(j.id, 5)} type="button">+5</button>
+                  <button onClick={() => ajouterAuCumul(j.id, 10)} type="button">+10</button>
                 </div>
                 {j.historique.length > 0 && (
                   <div className="cp-score-historique">
@@ -288,7 +331,8 @@ export default function CompteurPoints({ onFermer }) {
                   </div>
                 )}
               </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}
