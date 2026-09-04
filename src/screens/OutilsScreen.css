@@ -1,60 +1,14 @@
-.dice-panel {
-  background: var(--bg-panel);
-  border: 1px solid var(--border);
-  border-radius: 2px;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-bottom: 18px;
-}
-
-.dice-setting-block {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
 .dice-setting-label {
   font-size: 12.5px;
   color: var(--text-dim);
+  margin: 4px 0 8px;
 }
 
-.dice-stepper {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.dice-stepper-btn {
-  width: 30px;
-  height: 30px;
-  border-radius: 3px;
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text);
-  font-size: 16px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.dice-stepper-btn:disabled { opacity: 0.4; cursor: default; }
-
-.dice-stepper-value {
-  font-family: 'Fraunces', serif;
-  font-weight: 600;
-  font-size: 17px;
-  color: var(--gold-bright);
-  width: 20px;
-  text-align: center;
-}
-
-.dice-type-row {
+.dice-quick-row {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  margin-bottom: 10px;
 }
 
 .dice-type-btn {
@@ -67,12 +21,122 @@
   cursor: pointer;
 }
 
+.dice-type-btn:hover { border-color: var(--gold); color: var(--gold-bright); }
+
 .dice-type-btn.active {
   background: var(--gold);
   color: #1A1410;
   border-color: var(--gold);
   font-weight: 500;
 }
+
+.dice-custom-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.dice-custom-row input {
+  flex: 1;
+  background: #100D0C;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 10px 12px;
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 13.5px;
+  outline: none;
+}
+
+.dice-custom-row input:focus { border-color: var(--gold); }
+
+.dice-custom-add-btn {
+  flex-shrink: 0;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--gold);
+  color: var(--gold-bright);
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 0 16px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.dice-custom-add-btn:hover:not(:disabled) { background: rgba(169, 132, 63, 0.12); }
+.dice-custom-add-btn:disabled { opacity: 0.5; cursor: default; }
+
+.dice-groups-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.dice-group-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 10px 12px;
+}
+
+.dice-group-label {
+  font-family: 'Fraunces', serif;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--gold-bright);
+}
+
+.dice-group-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dice-stepper-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 3px;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dice-stepper-btn:hover:not(:disabled) { border-color: var(--gold); }
+.dice-stepper-btn:disabled { opacity: 0.4; cursor: default; }
+
+.dice-stepper-value {
+  font-family: 'Fraunces', serif;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text);
+  width: 18px;
+  text-align: center;
+}
+
+.dice-group-remove {
+  width: 26px;
+  height: 26px;
+  border-radius: 3px;
+  background: none;
+  border: 1px solid var(--error);
+  color: var(--error-text);
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dice-group-remove:hover { background: rgba(122, 49, 49, 0.15); }
 
 .dice-launch-btn {
   width: 100%;
@@ -84,6 +148,7 @@
   padding: 12px;
   border-radius: 3px;
   cursor: pointer;
+  margin-bottom: 18px;
 }
 
 .dice-launch-btn:hover:not(:disabled) { background: var(--gold-bright); }
@@ -98,24 +163,37 @@
 }
 
 .dice-result-card {
-  width: 52px;
-  height: 52px;
+  min-width: 72px;
   background: var(--bg-panel);
   border: 1px solid var(--border);
   border-radius: 8px;
+  padding: 10px 14px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  gap: 4px;
+}
+
+.dice-result-type {
   font-family: 'Fraunces', serif;
   font-weight: 600;
-  font-size: 19px;
+  font-size: 13px;
   color: var(--gold-bright);
+}
+
+.dice-result-values {
+  font-size: 13.5px;
+  color: var(--text);
+  text-align: center;
 }
 
 .dice-result-card.rolling {
   animation: dice-spin 0.35s ease-in-out;
   border-color: var(--gold);
-  font-size: 22px;
+}
+
+.dice-result-card.rolling .dice-result-values {
+  font-size: 20px;
 }
 
 @keyframes dice-spin {
