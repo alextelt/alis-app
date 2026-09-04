@@ -47,7 +47,7 @@ export default function OutilsScreen() {
     setTimeout(() => {
       const nouveaux = groupesDes.map((g) => ({
         faces: g.faces,
-        valeurs: Array.from({ length: g.nombre }, () => 1 + Math.floor(Math.random() * g.faces)),
+        valeurs: Array.from({ length: g.nombre }, () => Math.floor(Math.random() * g.faces) + 1),
       }))
       setResultats(nouveaux)
       setEnAnimation(false)

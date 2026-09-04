@@ -5,8 +5,8 @@
 }
 
 .dice-quick-row {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
   gap: 6px;
   margin-bottom: 10px;
 }
@@ -16,9 +16,10 @@
   border: 1px solid var(--border);
   color: var(--text-dim);
   font-size: 12.5px;
-  padding: 7px 11px;
+  padding: 12px 4px;
   border-radius: 3px;
   cursor: pointer;
+  text-align: center;
 }
 
 .dice-type-btn:hover { border-color: var(--gold); color: var(--gold-bright); }
