@@ -1,17 +1,64 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { supabase } from '../supabaseClient'
+import { useAuth } from '../AuthContext'
 import './CompteurPoints.css'
 
 const COULEURS_JOUEURS = ['#4CAF50', '#2196F3', '#F44336', '#9C27B0', '#FF9800', '#009688', '#E91E63', '#3F51B5']
 const NOMBRES_RAPIDES = [1, 2, 3, 4, 5, 6, 7]
 
 export default function CompteurPoints({ onFermer }) {
-  const [etape, setEtape] = useState('parametres')
+  const { user } = useAuth()
+  const [etape, setEtape] = useState('accueil')
+  const [partiesSauvegardees, setPartiesSauvegardees] = useState([])
+  const [chargementAccueil, setChargementAccueil] = useState(true)
   const [nombreJoueurs, setNombreJoueurs] = useState(4)
   const [nomPartie, setNomPartie] = useState('')
   const [joueurs, setJoueurs] = useState([])
+  const [partieId, setPartieId] = useState(null)
+  const [creationEnCours, setCreationEnCours] = useState(false)
+
+  const chargerParties = useCallback(async () => {
+    setChargementAccueil(true)
+    const { data, error } = await supabase
+      .from('parties_compteur')
+      .select('*')
+      .eq('profile_id', user.id)
+      .order('date_maj', { ascending: false })
+      .limit(3)
+
+    if (!error) {
+      setPartiesSauvegardees(data || [])
+      if (!data || data.length === 0) setEtape('parametres')
+    }
+    setChargementAccueil(false)
+  }, [user.id])
+
+  useEffect(() => {
+    chargerParties()
+  }, [chargerParties])
+
+  // Sauvegarde automatique de la partie en cours à chaque changement de score
+  useEffect(() => {
+    if (etape !== 'jeu' || !partieId) return
+    supabase
+      .from('parties_compteur')
+      .update({ joueurs, date_maj: new Date().toISOString() })
+      .eq('id', partieId)
+      .then(({ error }) => {
+        if (error) console.error('Erreur de sauvegarde de la partie :', error)
+      })
+  }, [joueurs, etape, partieId])
 
   function incrementerNombre() {
     setNombreJoueurs((n) => Math.min(12, n + 1))
+  }
+
+  function nouvellePartieDepuisAccueil() {
+    setNombreJoueurs(4)
+    setNomPartie('')
+    setJoueurs([])
+    setPartieId(null)
+    setEtape('parametres')
   }
 
   function validerParametres() {
@@ -20,6 +67,7 @@ export default function CompteurPoints({ onFermer }) {
       nom: `Joueur ${i + 1}`,
       couleur: COULEURS_JOUEURS[i % COULEURS_JOUEURS.length],
       score: 0,
+      historique: [],
     }))
     setJoueurs(nouveauxJoueurs)
     setEtape('noms')
@@ -29,15 +77,57 @@ export default function CompteurPoints({ onFermer }) {
     setJoueurs((prev) => prev.map((j) => (j.id === id ? { ...j, nom } : j)))
   }
 
-  function ajusterScore(id, delta) {
-    setJoueurs((prev) => prev.map((j) => (j.id === id ? { ...j, score: j.score + delta } : j)))
+  async function commencerPartie() {
+    setCreationEnCours(true)
+    const { data, error } = await supabase
+      .from('parties_compteur')
+      .insert({ profile_id: user.id, nom_partie: nomPartie || null, joueurs })
+      .select()
+      .single()
+    setCreationEnCours(false)
+
+    if (error) {
+      alert('Impossible de sauvegarder cette partie : ' + error.message)
+      return
+    }
+    setPartieId(data.id)
+    setEtape('jeu')
   }
 
-  function nouvellePartie() {
+  function ajusterScore(id, delta) {
+    setJoueurs((prev) =>
+      prev.map((j) =>
+        j.id === id
+          ? { ...j, score: j.score + delta, historique: [{ delta, ts: Date.now() }, ...j.historique] }
+          : j
+      )
+    )
+  }
+
+  function reprendrePartie(partie) {
+    setJoueurs(partie.joueurs || [])
+    setPartieId(partie.id)
+    setNomPartie(partie.nom_partie || '')
+    setEtape('jeu')
+  }
+
+  async function supprimerPartie(id) {
+    if (!confirm('Supprimer cette partie sauvegardée ?')) return
+    const { error } = await supabase.from('parties_compteur').delete().eq('id', id)
+    if (error) {
+      alert('Impossible de supprimer cette partie : ' + error.message)
+      return
+    }
+    setPartiesSauvegardees((prev) => prev.filter((p) => p.id !== id))
+  }
+
+  function retourAccueil() {
     setJoueurs([])
+    setPartieId(null)
     setNomPartie('')
     setNombreJoueurs(4)
-    setEtape('parametres')
+    setEtape('accueil')
+    chargerParties()
   }
 
   return (
@@ -45,6 +135,55 @@ export default function CompteurPoints({ onFermer }) {
       <button className="cp-close-btn" onClick={onFermer} type="button" aria-label="Fermer">
         ✕
       </button>
+
+      {etape === 'accueil' && (
+        <div className="cp-step">
+          <h2 className="cp-title">Compteur de points</h2>
+
+          {chargementAccueil ? (
+            <div className="cp-loading">Chargement des parties...</div>
+          ) : (
+            <>
+              {partiesSauvegardees.length === 0 ? (
+                <div className="cp-empty">Aucune partie sauvegardée pour l'instant.</div>
+              ) : (
+                <div className="cp-parties-list">
+                  {partiesSauvegardees.map((p) => (
+                    <div key={p.id} className="cp-partie-card">
+                      <div className="cp-partie-top">
+                        <div className="cp-partie-nom">
+                          {p.nom_partie || `Partie du ${formaterDate(p.date_creation)}`}
+                        </div>
+                        <button
+                          className="cp-partie-delete"
+                          onClick={() => supprimerPartie(p.id)}
+                          type="button"
+                        >
+                          ✕ Supprimer
+                        </button>
+                      </div>
+                      <div className="cp-partie-scores">
+                        {(p.joueurs || []).map((j) => (
+                          <span key={j.id} className="cp-partie-score-chip" style={{ background: j.couleur }}>
+                            {j.nom} · {j.score}
+                          </span>
+                        ))}
+                      </div>
+                      <button className="cp-primary-btn" onClick={() => reprendrePartie(p)} type="button">
+                        Reprendre
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <button className="cp-secondary-btn" onClick={nouvellePartieDepuisAccueil} type="button">
+                + Nouvelle partie
+              </button>
+            </>
+          )}
+        </div>
+      )}
 
       {etape === 'parametres' && (
         <div className="cp-step">
@@ -109,8 +248,8 @@ export default function CompteurPoints({ onFermer }) {
             ))}
           </div>
 
-          <button className="cp-primary-btn" onClick={() => setEtape('jeu')} type="button">
-            Commencer la partie
+          <button className="cp-primary-btn" onClick={commencerPartie} disabled={creationEnCours} type="button">
+            {creationEnCours ? 'Création...' : 'Commencer la partie'}
           </button>
         </div>
       )}
@@ -118,7 +257,7 @@ export default function CompteurPoints({ onFermer }) {
       {etape === 'jeu' && (
         <div className="cp-step cp-step-jeu">
           <div className="cp-jeu-header">
-            <button className="cp-jeu-header-btn" onClick={nouvellePartie} type="button">
+            <button className="cp-jeu-header-btn" onClick={retourAccueil} type="button">
               Nouvelle partie
             </button>
             {nomPartie && <div className="cp-jeu-title">{nomPartie}</div>}
@@ -139,6 +278,15 @@ export default function CompteurPoints({ onFermer }) {
                   <button onClick={() => ajusterScore(j.id, 5)} type="button">+5</button>
                   <button onClick={() => ajusterScore(j.id, 10)} type="button">+10</button>
                 </div>
+                {j.historique.length > 0 && (
+                  <div className="cp-score-historique">
+                    {j.historique.slice(0, 8).map((h) => (
+                      <span key={h.ts} className="cp-historique-pill">
+                        {h.delta > 0 ? `+${h.delta}` : h.delta}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -146,4 +294,9 @@ export default function CompteurPoints({ onFermer }) {
       )}
     </div>
   )
+}
+
+function formaterDate(dateIso) {
+  const d = new Date(dateIso)
+  return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
 }
