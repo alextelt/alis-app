@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import PremierJoueurPicker from '../components/PremierJoueurPicker'
+import CompteurPoints from '../components/CompteurPoints'
 import './OutilsScreen.css'
 
 const FACES_RAPIDES = [4, 6, 8, 10, 12, 20]
@@ -10,6 +11,7 @@ export default function OutilsScreen() {
   const [resultats, setResultats] = useState([])
   const [enAnimation, setEnAnimation] = useState(false)
   const [pickerOuvert, setPickerOuvert] = useState(false)
+  const [compteurOuvert, setCompteurOuvert] = useState(false)
 
   function ajouterGroupe(faces, quantite = 1) {
     setResultats([])
@@ -68,6 +70,14 @@ export default function OutilsScreen() {
         <div className="tool-launch-card-title">👆 Choisir le premier joueur</div>
         <div className="tool-launch-card-desc">
           Chaque joueur pose un doigt sur l'écran, le sort désigne celui qui commence.
+        </div>
+      </button>
+
+      <div className="section-title">Compteur de points</div>
+      <button className="tool-launch-card" onClick={() => setCompteurOuvert(true)} type="button">
+        <div className="tool-launch-card-title">🔢 Compteur de points</div>
+        <div className="tool-launch-card-desc">
+          Crée une partie, ajoute des joueurs et suis leurs scores en temps réel.
         </div>
       </button>
 
@@ -165,6 +175,7 @@ export default function OutilsScreen() {
       )}
 
       {pickerOuvert && <PremierJoueurPicker onFermer={() => setPickerOuvert(false)} />}
+      {compteurOuvert && <CompteurPoints onFermer={() => setCompteurOuvert(false)} />}
     </div>
   )
 }
