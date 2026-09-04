@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import PremierJoueurPicker from '../components/PremierJoueurPicker'
 import CompteurPoints from '../components/CompteurPoints'
+import DessinRapide from '../components/DessinRapide'
 import './OutilsScreen.css'
 
 const FACES_RAPIDES = [4, 6, 8, 10, 12, 20]
@@ -12,6 +13,7 @@ export default function OutilsScreen() {
   const [enAnimation, setEnAnimation] = useState(false)
   const [pickerOuvert, setPickerOuvert] = useState(false)
   const [compteurOuvert, setCompteurOuvert] = useState(false)
+  const [dessinOuvert, setDessinOuvert] = useState(false)
 
   function ajouterGroupe(faces, quantite = 1) {
     setResultats([])
@@ -78,6 +80,14 @@ export default function OutilsScreen() {
         <div className="tool-launch-card-title">🔢 Compteur de points</div>
         <div className="tool-launch-card-desc">
           Crée une partie, ajoute des joueurs et suis leurs scores en temps réel.
+        </div>
+      </button>
+
+      <div className="section-title">Dessin rapide</div>
+      <button className="tool-launch-card" onClick={() => setDessinOuvert(true)} type="button">
+        <div className="tool-launch-card-title">✏️ Dessin rapide</div>
+        <div className="tool-launch-card-desc">
+          Un canvas plein écran pour griffonner un schéma ou une idée au doigt.
         </div>
       </button>
 
@@ -176,6 +186,7 @@ export default function OutilsScreen() {
 
       {pickerOuvert && <PremierJoueurPicker onFermer={() => setPickerOuvert(false)} />}
       {compteurOuvert && <CompteurPoints onFermer={() => setCompteurOuvert(false)} />}
+      {dessinOuvert && <DessinRapide onFermer={() => setDessinOuvert(false)} />}
     </div>
   )
 }
