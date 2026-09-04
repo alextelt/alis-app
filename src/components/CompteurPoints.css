@@ -248,6 +248,13 @@
   gap: 10px;
   padding-right: 46px;
   margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.cp-jeu-header-btns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .cp-jeu-header-btn {
@@ -262,6 +269,17 @@
 }
 
 .cp-jeu-header-btn:hover { border-color: var(--gold); color: var(--gold-bright); }
+
+.cp-jeu-header-btn-danger {
+  border-color: var(--error);
+  color: var(--error-text);
+}
+
+.cp-jeu-header-btn-danger:hover {
+  border-color: var(--error);
+  color: var(--error-text);
+  background: rgba(122, 49, 49, 0.15);
+}
 
 .cp-jeu-title {
   flex: 1;

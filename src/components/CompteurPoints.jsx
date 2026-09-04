@@ -158,6 +158,12 @@ export default function CompteurPoints({ onFermer }) {
     setCumulEnCours({})
   }
 
+  function reinitialiserScores() {
+    if (!confirm('Remettre tous les scores à 0 ?')) return
+    annulerCumulsEnAttente()
+    setJoueurs((prev) => prev.map((j) => ({ ...j, score: 0, historique: [] })))
+  }
+
   function retourAccueil() {
     annulerCumulsEnAttente()
     setJoueurs([])
@@ -295,9 +301,14 @@ export default function CompteurPoints({ onFermer }) {
       {etape === 'jeu' && (
         <div className="cp-step cp-step-jeu">
           <div className="cp-jeu-header">
-            <button className="cp-jeu-header-btn" onClick={retourAccueil} type="button">
-              Nouvelle partie
-            </button>
+            <div className="cp-jeu-header-btns">
+              <button className="cp-jeu-header-btn" onClick={retourAccueil} type="button">
+                Nouvelle partie
+              </button>
+              <button className="cp-jeu-header-btn cp-jeu-header-btn-danger" onClick={reinitialiserScores} type="button">
+                Réinitialiser
+              </button>
+            </div>
             {nomPartie && <div className="cp-jeu-title">{nomPartie}</div>}
           </div>
 
