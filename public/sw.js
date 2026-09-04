@@ -1,4 +1,4 @@
-const CACHE_NAME = 'alis-v1'
+const CACHE_NAME = 'alis-v2'
 const APP_SHELL = ['/', '/manifest.json', '/icon-192.png', '/icon-512.png']
 
 self.addEventListener('install', (event) => {
@@ -17,6 +17,32 @@ self.addEventListener('activate', (event) => {
   self.clients.claim()
 })
 
+// Réseau d'abord, cache en secours (pour le HTML et les assets JS/CSS : toujours la dernière version si en ligne)
+async function networkFirst(request) {
+  try {
+    const reponseReseau = await fetch(request)
+    const copie = reponseReseau.clone()
+    const cache = await caches.open(CACHE_NAME)
+    cache.put(request, copie)
+    return reponseReseau
+  } catch {
+    const reponseEnCache = await caches.match(request)
+    return reponseEnCache || caches.match('/')
+  }
+}
+
+// Cache d'abord, réseau en secours (pour les images/icônes qui changent rarement)
+async function cacheFirst(request) {
+  const reponseEnCache = await caches.match(request)
+  if (reponseEnCache) return reponseEnCache
+
+  const reponseReseau = await fetch(request)
+  const copie = reponseReseau.clone()
+  const cache = await caches.open(CACHE_NAME)
+  cache.put(request, copie)
+  return reponseReseau
+}
+
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url)
 
@@ -30,17 +56,9 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  event.respondWith(
-    caches.match(event.request).then((reponseEnCache) => {
-      if (reponseEnCache) return reponseEnCache
+  const estImage =
+    event.request.destination === 'image' ||
+    /\.(png|jpg|jpeg|svg|gif|webp|ico)$/.test(url.pathname)
 
-      return fetch(event.request)
-        .then((reponseReseau) => {
-          const copie = reponseReseau.clone()
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copie))
-          return reponseReseau
-        })
-        .catch(() => caches.match('/'))
-    })
-  )
+  event.respondWith(estImage ? cacheFirst(event.request) : networkFirst(event.request))
 })
