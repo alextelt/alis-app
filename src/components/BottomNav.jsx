@@ -1,4 +1,5 @@
 import { useAuth } from '../AuthContext'
+import { useNotificationCounts } from '../useNotificationCounts'
 
 const ONGLETS = [
   {
@@ -33,24 +34,36 @@ const ONGLETS = [
   },
 ]
 
-export default function BottomNav({ ecranActif, onChangerEcran, nbEnAttenteAdmin = 0 }) {
-  const { estAdmin } = useAuth()
+const BADGES_PAR_ONGLET = {
+  votes: 'quetesAVoterEnAttente',
+  profil: 'demandesAmisEnAttente',
+}
+
+export default function BottomNav({ ecranActif, onChangerEcran }) {
+  const { user, estAdmin } = useAuth()
+  const { demandesAmisEnAttente, quetesAVoterEnAttente, elementsAdminEnAttente } = useNotificationCounts(user, estAdmin)
+
+  const compteurs = { demandesAmisEnAttente, quetesAVoterEnAttente }
 
   return (
     <nav className="bottom-nav">
-      {ONGLETS.map((onglet) => (
-        <button
-          key={onglet.id}
-          className={`nav-item ${ecranActif === onglet.id ? 'active' : ''}`}
-          onClick={() => onChangerEcran(onglet.id)}
-          type="button"
-        >
-          <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            {onglet.icon}
-          </svg>
-          {onglet.label}
-        </button>
-      ))}
+      {ONGLETS.map((onglet) => {
+        const badge = BADGES_PAR_ONGLET[onglet.id] ? compteurs[BADGES_PAR_ONGLET[onglet.id]] : 0
+        return (
+          <button
+            key={onglet.id}
+            className={`nav-item ${ecranActif === onglet.id ? 'active' : ''}`}
+            onClick={() => onChangerEcran(onglet.id)}
+            type="button"
+          >
+            <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              {onglet.icon}
+            </svg>
+            {onglet.label}
+            {badge > 0 && <span className="nav-badge">{badge}</span>}
+          </button>
+        )
+      })}
 
       {estAdmin && (
         <button
@@ -62,7 +75,7 @@ export default function BottomNav({ ecranActif, onChangerEcran, nbEnAttenteAdmin
             <path d="M12 2l8 4v6c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10V6l8-4z" />
           </svg>
           Admin
-          {nbEnAttenteAdmin > 0 && <span className="nav-badge">{nbEnAttenteAdmin}</span>}
+          {elementsAdminEnAttente > 0 && <span className="nav-badge">{elementsAdminEnAttente}</span>}
         </button>
       )}
     </nav>
