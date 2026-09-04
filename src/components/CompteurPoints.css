@@ -351,14 +351,13 @@
 
 .cp-score-historique {
   display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
   gap: 6px;
   width: 100%;
-  overflow-x: auto;
-  scrollbar-width: none;
+  min-height: 66px;
   padding-top: 2px;
 }
-
-.cp-score-historique::-webkit-scrollbar { display: none; }
 
 .cp-historique-pill {
   flex-shrink: 0;

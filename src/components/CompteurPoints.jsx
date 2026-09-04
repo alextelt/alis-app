@@ -321,15 +321,13 @@ export default function CompteurPoints({ onFermer }) {
                   <button onClick={() => ajouterAuCumul(j.id, 5)} type="button">+5</button>
                   <button onClick={() => ajouterAuCumul(j.id, 10)} type="button">+10</button>
                 </div>
-                {j.historique.length > 0 && (
-                  <div className="cp-score-historique">
-                    {j.historique.slice(0, 8).map((h) => (
-                      <span key={h.ts} className="cp-historique-pill">
-                        {h.delta > 0 ? `+${h.delta}` : h.delta}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                <div className="cp-score-historique">
+                  {j.historique.slice(0, 12).map((h) => (
+                    <span key={h.ts} className="cp-historique-pill">
+                      {h.delta > 0 ? `+${h.delta}` : h.delta}
+                    </span>
+                  ))}
+                </div>
               </div>
               )
             })}
