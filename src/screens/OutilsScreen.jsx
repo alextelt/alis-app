@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import PremierJoueurPicker from '../components/PremierJoueurPicker'
 import './OutilsScreen.css'
 
 const FACES_RAPIDES = [4, 6, 8, 10, 12, 20]
@@ -8,6 +9,7 @@ export default function OutilsScreen() {
   const [facesPersonnalise, setFacesPersonnalise] = useState('')
   const [resultats, setResultats] = useState([])
   const [enAnimation, setEnAnimation] = useState(false)
+  const [pickerOuvert, setPickerOuvert] = useState(false)
 
   function ajouterGroupe(faces, quantite = 1) {
     setResultats([])
@@ -61,6 +63,14 @@ export default function OutilsScreen() {
 
   return (
     <div className="page-content">
+      <div className="section-title">Choisir le premier joueur</div>
+      <button className="tool-launch-card" onClick={() => setPickerOuvert(true)} type="button">
+        <div className="tool-launch-card-title">👆 Choisir le premier joueur</div>
+        <div className="tool-launch-card-desc">
+          Chaque joueur pose un doigt sur l'écran, le sort désigne celui qui commence.
+        </div>
+      </button>
+
       <div className="section-title">Lanceur de dés</div>
 
       <div className="dice-setting-label">Ajouter des dés</div>
@@ -153,6 +163,8 @@ export default function OutilsScreen() {
       {!enAnimation && resultats.length > 0 && (
         <div className="dice-total">Total : <span>{totalGeneral}</span></div>
       )}
+
+      {pickerOuvert && <PremierJoueurPicker onFermer={() => setPickerOuvert(false)} />}
     </div>
   )
 }
