@@ -7,6 +7,7 @@ import Avatar from './components/Avatar'
 import QuetesScreen from './screens/QuetesScreen'
 import VotesScreen from './screens/VotesScreen'
 import AlisScreen from './screens/AlisScreen'
+import OutilsScreen from './screens/OutilsScreen'
 import ProfilScreen from './screens/ProfilScreen'
 import AdminScreen from './screens/AdminScreen'
 import './theme.css'
@@ -52,6 +53,7 @@ function AppContent() {
     quetes: <QuetesScreen />,
     votes: <VotesScreen />,
     alis: <AlisScreen />,
+    outils: <OutilsScreen />,
     profil: <ProfilScreen />,
     admin: <AdminScreen />,
   }

@@ -17,6 +17,16 @@ const ONGLETS = [
     icon: <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />,
   },
   {
+    id: 'outils',
+    label: 'Outils',
+    icon: <>
+      <rect x="3" y="3" width="18" height="18" rx="3" />
+      <circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none" />
+      <circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none" />
+    </>,
+  },
+  {
     id: 'profil',
     label: 'Profil',
     icon: <><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" /></>,
