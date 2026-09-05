@@ -185,6 +185,85 @@
 
 .ct-primary-btn:hover { background: var(--gold-bright); }
 
+.ct-secondary-btn {
+  width: 100%;
+  background: none;
+  border: 1px dashed var(--gold);
+  color: var(--gold-bright);
+  font-weight: 500;
+  font-size: 13.5px;
+  padding: 12px;
+  border-radius: 3px;
+  cursor: pointer;
+  margin-top: 14px;
+}
+
+.ct-secondary-btn:hover { background: rgba(169, 132, 63, 0.1); }
+
+.ct-loading, .ct-empty {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 13px;
+  padding: 20px 0;
+}
+
+.ct-parties-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ct-partie-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 14px 15px;
+}
+
+.ct-partie-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.ct-partie-nom {
+  font-family: 'Fraunces', serif;
+  font-weight: 600;
+  font-size: 14.5px;
+  color: var(--text);
+}
+
+.ct-partie-delete {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--error-text);
+  font-size: 11.5px;
+  padding: 0;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ct-partie-delete:hover { text-decoration: underline; }
+
+.ct-partie-mode {
+  font-size: 11.5px;
+  color: var(--gold-bright);
+  margin-bottom: 6px;
+}
+
+.ct-partie-joueurs {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+}
+
+.ct-partie-card .ct-primary-btn {
+  margin-top: 0;
+}
+
 .ct-noms-list {
   display: flex;
   flex-direction: column;

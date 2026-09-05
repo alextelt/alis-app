@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { supabase } from '../supabaseClient'
+import { useAuth } from '../AuthContext'
 import './ChronoTour.css'
 
 const COULEURS_JOUEURS = ['#4CAF50', '#2196F3', '#F44336', '#9C27B0', '#FF9800', '#009688', '#E91E63', '#3F51B5']
@@ -9,15 +11,42 @@ const TEMPS_RAPIDES = [
   { label: '5 min', valeur: 300 },
   { label: '10 min', valeur: 600 },
 ]
+const DELAI_SAUVEGARDE = 2000
 
 export default function ChronoTour({ onFermer }) {
-  const [etape, setEtape] = useState('parametres')
+  const { user } = useAuth()
+  const [etape, setEtape] = useState('accueil')
+  const [partiesSauvegardees, setPartiesSauvegardees] = useState([])
+  const [chargementAccueil, setChargementAccueil] = useState(true)
   const [mode, setMode] = useState('compte_a_rebours')
   const [nombreJoueurs, setNombreJoueurs] = useState(2)
   const [tempsInitialSecondes, setTempsInitialSecondes] = useState(300)
+  const [nomPartie, setNomPartie] = useState('')
   const [joueurs, setJoueurs] = useState([])
+  const [partieId, setPartieId] = useState(null)
+  const [creationEnCours, setCreationEnCours] = useState(false)
   const [joueurActifIndex, setJoueurActifIndex] = useState(0)
   const [enPause, setEnPause] = useState(false)
+
+  const chargerParties = useCallback(async () => {
+    setChargementAccueil(true)
+    const { data, error } = await supabase
+      .from('parties_chrono')
+      .select('*')
+      .eq('profile_id', user.id)
+      .order('date_maj', { ascending: false })
+      .limit(3)
+
+    if (!error) {
+      setPartiesSauvegardees(data || [])
+      if (!data || data.length === 0) setEtape('parametres')
+    }
+    setChargementAccueil(false)
+  }, [user.id])
+
+  useEffect(() => {
+    chargerParties()
+  }, [chargerParties])
 
   // Fait tourner le temps du joueur actif toutes les 100ms
   useEffect(() => {
@@ -36,8 +65,34 @@ export default function ChronoTour({ onFermer }) {
     return () => clearInterval(interval)
   }, [etape, enPause, joueurActifIndex, mode])
 
+  // Sauvegarde différée de la partie en cours : le chrono tique toutes les 100ms,
+  // on ne sauvegarde donc qu'une fois la valeur stable pendant 2s (pause, changement de joueur figé...)
+  useEffect(() => {
+    if (etape !== 'jeu' || !partieId) return
+    const timeout = setTimeout(() => {
+      supabase
+        .from('parties_chrono')
+        .update({ joueurs, date_maj: new Date().toISOString() })
+        .eq('id', partieId)
+        .then(({ error }) => {
+          if (error) console.error('Erreur de sauvegarde de la partie :', error)
+        })
+    }, DELAI_SAUVEGARDE)
+    return () => clearTimeout(timeout)
+  }, [joueurs, etape, partieId])
+
   function incrementerNombre() {
     setNombreJoueurs((n) => Math.min(8, n + 1))
+  }
+
+  function nouvellePartieDepuisAccueil() {
+    setMode('compte_a_rebours')
+    setNombreJoueurs(2)
+    setTempsInitialSecondes(300)
+    setNomPartie('')
+    setJoueurs([])
+    setPartieId(null)
+    setEtape('parametres')
   }
 
   function validerParametres() {
@@ -56,7 +111,26 @@ export default function ChronoTour({ onFermer }) {
     setJoueurs((prev) => prev.map((j) => (j.id === id ? { ...j, nom } : j)))
   }
 
-  function commencer() {
+  async function commencerPartie() {
+    setCreationEnCours(true)
+    const { data, error } = await supabase
+      .from('parties_chrono')
+      .insert({
+        profile_id: user.id,
+        nom_partie: nomPartie || null,
+        mode,
+        temps_initial_secondes: tempsInitialSecondes,
+        joueurs,
+      })
+      .select()
+      .single()
+    setCreationEnCours(false)
+
+    if (error) {
+      alert('Impossible de sauvegarder cette partie : ' + error.message)
+      return
+    }
+    setPartieId(data.id)
     setJoueurActifIndex(0)
     setEnPause(false)
     setEtape('jeu')
@@ -82,6 +156,35 @@ export default function ChronoTour({ onFermer }) {
     setEnPause(false)
   }
 
+  function reprendrePartie(partie) {
+    setJoueurs(partie.joueurs || [])
+    setMode(partie.mode)
+    setTempsInitialSecondes(partie.temps_initial_secondes)
+    setPartieId(partie.id)
+    setNomPartie(partie.nom_partie || '')
+    setJoueurActifIndex(0)
+    setEnPause(true)
+    setEtape('jeu')
+  }
+
+  async function supprimerPartie(id) {
+    if (!confirm('Supprimer cette partie sauvegardée ?')) return
+    const { error } = await supabase.from('parties_chrono').delete().eq('id', id)
+    if (error) {
+      alert('Impossible de supprimer cette partie : ' + error.message)
+      return
+    }
+    setPartiesSauvegardees((prev) => prev.filter((p) => p.id !== id))
+  }
+
+  function retourAccueil() {
+    setJoueurs([])
+    setPartieId(null)
+    setNomPartie('')
+    setEtape('accueil')
+    chargerParties()
+  }
+
   function tempsDe(j) {
     return mode === 'compte_a_rebours' ? j.tempsRestant : j.tempsEcoule
   }
@@ -100,6 +203,54 @@ export default function ChronoTour({ onFermer }) {
       <button className="ct-close-btn" onClick={onFermer} type="button" aria-label="Fermer">
         ✕
       </button>
+
+      {etape === 'accueil' && (
+        <div className="ct-step">
+          <h2 className="ct-title">Chrono de tour</h2>
+
+          {chargementAccueil ? (
+            <div className="ct-loading">Chargement des parties...</div>
+          ) : (
+            <>
+              {partiesSauvegardees.length === 0 ? (
+                <div className="ct-empty">Aucune partie sauvegardée pour l'instant.</div>
+              ) : (
+                <div className="ct-parties-list">
+                  {partiesSauvegardees.map((p) => (
+                    <div key={p.id} className="ct-partie-card">
+                      <div className="ct-partie-top">
+                        <div className="ct-partie-nom">
+                          {p.nom_partie || `Partie du ${formaterDate(p.date_creation)}`}
+                        </div>
+                        <button
+                          className="ct-partie-delete"
+                          onClick={() => supprimerPartie(p.id)}
+                          type="button"
+                        >
+                          ✕ Supprimer
+                        </button>
+                      </div>
+                      <div className="ct-partie-mode">
+                        {p.mode === 'compte_a_rebours' ? 'Compte à rebours' : 'Chrono'}
+                      </div>
+                      <div className="ct-partie-joueurs">
+                        {(p.joueurs || []).map((j) => j.nom).join(', ')}
+                      </div>
+                      <button className="ct-primary-btn" onClick={() => reprendrePartie(p)} type="button">
+                        Reprendre
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <button className="ct-secondary-btn" onClick={nouvellePartieDepuisAccueil} type="button">
+                + Nouvelle partie
+              </button>
+            </>
+          )}
+        </div>
+      )}
 
       {etape === 'parametres' && (
         <div className="ct-step">
@@ -163,6 +314,15 @@ export default function ChronoTour({ onFermer }) {
             </button>
           </div>
 
+          <div className="ct-field-label">Nom de la partie (optionnel)</div>
+          <input
+            type="text"
+            className="ct-input"
+            placeholder="Ex: Soirée jeux de société"
+            value={nomPartie}
+            onChange={(e) => setNomPartie(e.target.value)}
+          />
+
           <button className="ct-primary-btn" onClick={validerParametres} type="button">
             Suivant
           </button>
@@ -191,8 +351,8 @@ export default function ChronoTour({ onFermer }) {
             ))}
           </div>
 
-          <button className="ct-primary-btn" onClick={commencer} type="button">
-            Commencer
+          <button className="ct-primary-btn" onClick={commencerPartie} disabled={creationEnCours} type="button">
+            {creationEnCours ? 'Création...' : 'Commencer'}
           </button>
         </div>
       )}
@@ -200,6 +360,9 @@ export default function ChronoTour({ onFermer }) {
       {etape === 'jeu' && joueurActif && (
         <div className="ct-step-jeu">
           <div className="ct-jeu-header">
+            <button className="ct-jeu-header-btn" onClick={retourAccueil} type="button">
+              Nouvelle partie
+            </button>
             <button className="ct-jeu-header-btn" onClick={() => setEnPause((p) => !p)} type="button">
               {enPause ? '▶ Reprendre' : '⏸ Pause'}
             </button>
@@ -247,4 +410,9 @@ function formaterTemps(secondes) {
   const m = Math.floor(total / 60)
   const s = total % 60
   return `${m}:${String(s).padStart(2, '0')}`
+}
+
+function formaterDate(dateIso) {
+  const d = new Date(dateIso)
+  return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
 }
