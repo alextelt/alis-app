@@ -1,19 +1,23 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../AuthContext'
+import { useSoireeActive } from '../useSoireeActive'
 import { estAujourdhui, moinsDune_heure, LABELS_CATEGORIE, ORDRE_CATEGORIES, NIVEAUX_DIFFICULTE } from '../utils'
+import SoireeEcran from '../components/SoireeEcran'
 import './QuetesScreen.css'
 
 export default function QuetesScreen() {
   const { user } = useAuth()
+  const { soireeActive, nbParticipants, chargement: chargementSoiree } = useSoireeActive(user)
   const [quetes, setQuetes] = useState([])
   const [mesValidations, setMesValidations] = useState([])
   const [chargement, setChargement] = useState(true)
   const [erreur, setErreur] = useState(null)
   const [filtre, setFiltre] = useState('toutes')
-  const [lancementEnCours, setLancementEnCours] = useState(null)
+  const [validationEnCours, setValidationEnCours] = useState(null)
   const [modaleProposerOuverte, setModaleProposerOuverte] = useState(false)
   const [soumissionEnCours, setSoumissionEnCours] = useState(false)
+  const [soireeEcranOuvert, setSoireeEcranOuvert] = useState(false)
 
   const charger = useCallback(async () => {
     setErreur(null)
@@ -52,23 +56,29 @@ export default function QuetesScreen() {
     if (validee) return { type: 'fait' }
 
     const enAttente = mesValidations.find(
-      (v) => v.quete_id === queteId && v.statut === 'en_attente' && moinsDune_heure(v.date_creation)
+      (v) =>
+        v.quete_id === queteId &&
+        v.statut === 'en_attente' &&
+        moinsDune_heure(v.date_creation) &&
+        v.soiree_id === soireeActive?.id
     )
     if (enAttente) return { type: 'en_attente' }
 
     return { type: 'disponible' }
   }
 
-  async function lancerQuete(quete) {
-    setLancementEnCours(quete.id)
+  async function validerQuete(quete) {
+    if (!soireeActive) return
+    setValidationEnCours(quete.id)
     const { error } = await supabase.from('quetes_validations').insert({
       quete_id: quete.id,
       joueur_id: user.id,
       statut: 'en_attente',
+      soiree_id: soireeActive.id,
     })
-    setLancementEnCours(null)
+    setValidationEnCours(null)
     if (error) {
-      alert("Impossible de lancer cette quête : " + error.message)
+      alert("Impossible de valider cette quête : " + error.message)
       return
     }
     charger()
@@ -119,6 +129,32 @@ export default function QuetesScreen() {
 
   return (
     <>
+      <div className="soiree-banner-row">
+        {!chargementSoiree && (
+          soireeActive ? (
+            <button
+              className="soiree-banner active"
+              onClick={() => setSoireeEcranOuvert(true)}
+              type="button"
+            >
+              <span className="soiree-banner-dot" />
+              Soirée en cours · {nbParticipants} participant{nbParticipants > 1 ? 's' : ''}
+            </button>
+          ) : (
+            <div className="soiree-banner">
+              <span>Aucune soirée en cours</span>
+              <button
+                className="soiree-banner-btn"
+                onClick={() => setSoireeEcranOuvert(true)}
+                type="button"
+              >
+                Créer une soirée
+              </button>
+            </div>
+          )
+        )}
+      </div>
+
       <div className="propose-row">
         <button
           className="propose-btn"
@@ -163,8 +199,9 @@ export default function QuetesScreen() {
                   key={quete.id}
                   quete={quete}
                   etat={etatQuete(quete.id)}
-                  onLancer={() => lancerQuete(quete)}
-                  lancementEnCours={lancementEnCours === quete.id}
+                  onValider={() => validerQuete(quete)}
+                  validationEnCours={validationEnCours === quete.id}
+                  soireeActive={soireeActive}
                 />
               ))}
             </div>
@@ -179,6 +216,8 @@ export default function QuetesScreen() {
           enCours={soumissionEnCours}
         />
       )}
+
+      {soireeEcranOuvert && <SoireeEcran onFermer={() => setSoireeEcranOuvert(false)} />}
     </>
   )
 }
@@ -266,7 +305,7 @@ function ModaleProposerQuete({ onFermer, onSoumettre, enCours }) {
   )
 }
 
-function CarteQuete({ quete, etat, onLancer, lancementEnCours }) {
+function CarteQuete({ quete, etat, onValider, validationEnCours, soireeActive }) {
   const nbPoints = NIVEAUX_DIFFICULTE[quete.difficulte] || 0
 
   return (
@@ -293,8 +332,16 @@ function CarteQuete({ quete, etat, onLancer, lancementEnCours }) {
           <button className="quest-action attente" disabled>En attente de vote</button>
         )}
         {etat.type === 'disponible' && (
-          <button className="quest-action lancer" onClick={onLancer} disabled={lancementEnCours}>
-            {lancementEnCours ? 'Lancement...' : 'Lancer la quête'}
+          <button
+            className="quest-action lancer"
+            onClick={onValider}
+            disabled={validationEnCours || !soireeActive}
+          >
+            {!soireeActive
+              ? 'Rejoins une soirée pour valider une quête'
+              : validationEnCours
+                ? 'Validation...'
+                : 'Valider une quête'}
           </button>
         )}
       </div>

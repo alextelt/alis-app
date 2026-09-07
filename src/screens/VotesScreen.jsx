@@ -1,12 +1,14 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../AuthContext'
+import { useSoireeActive } from '../useSoireeActive'
 import { minutesAvantExpiration } from '../utils'
 import Avatar from '../components/Avatar'
 import './VotesScreen.css'
 
 export default function VotesScreen() {
   const { user, profile } = useAuth()
+  const { soireeActive, majorite } = useSoireeActive(user)
   const [tentatives, setTentatives] = useState([])
   const [chargement, setChargement] = useState(true)
   const [erreur, setErreur] = useState(null)
@@ -15,6 +17,13 @@ export default function VotesScreen() {
 
   const charger = useCallback(async () => {
     setErreur(null)
+
+    if (!soireeActive) {
+      setTentatives([])
+      setChargement(false)
+      return
+    }
+
     const uneHeureAvant = new Date(Date.now() - 60 * 60 * 1000).toISOString()
 
     const { data, error } = await supabase
@@ -26,6 +35,7 @@ export default function VotesScreen() {
         votes ( votant_id, votant:profiles!votes_votant_id_fkey ( pseudo ) )
       `)
       .eq('statut', 'en_attente')
+      .eq('soiree_id', soireeActive.id)
       .gte('date_creation', uneHeureAvant)
       .order('date_creation', { ascending: true })
 
@@ -33,7 +43,7 @@ export default function VotesScreen() {
     else setTentatives(data)
 
     setChargement(false)
-  }, [])
+  }, [soireeActive])
 
   useEffect(() => {
     charger()
@@ -84,7 +94,11 @@ export default function VotesScreen() {
       </div>
 
       <div className="page-content">
-        {tentatives.length === 0 && (
+        {!soireeActive && (
+          <div className="empty-state">Rejoins une soirée pour voir les votes en cours.</div>
+        )}
+
+        {soireeActive && tentatives.length === 0 && (
           <div className="empty-state">Aucune tentative en attente pour le moment.</div>
         )}
 
@@ -116,9 +130,9 @@ export default function VotesScreen() {
 
               <div className="vote-progress-row">
                 <div className="vote-track">
-                  <div className="vote-fill" style={{ width: `${Math.min(100, (nbVotes / 3) * 100)}%` }}></div>
+                  <div className="vote-fill" style={{ width: `${Math.min(100, (nbVotes / majorite) * 100)}%` }}></div>
                 </div>
-                <span className="vote-count">{nbVotes}/3</span>
+                <span className="vote-count">{nbVotes}/{majorite}</span>
               </div>
 
               <div className="vote-voters">
@@ -158,6 +172,7 @@ export default function VotesScreen() {
       {tentativePourVote && (
         <ModaleConfirmationVote
           tentative={tentativePourVote}
+          majorite={majorite}
           onAnnuler={() => setTentativePourVote(null)}
           onConfirmer={() => confirmerVote(tentativePourVote)}
           enCours={actionEnCours === tentativePourVote.id}
@@ -167,7 +182,7 @@ export default function VotesScreen() {
   )
 }
 
-function ModaleConfirmationVote({ tentative, onAnnuler, onConfirmer, enCours }) {
+function ModaleConfirmationVote({ tentative, majorite, onAnnuler, onConfirmer, enCours }) {
   const nbVotesApres = tentative.votes.length + 1
 
   return (
@@ -182,7 +197,7 @@ function ModaleConfirmationVote({ tentative, onAnnuler, onConfirmer, enCours }) 
         <h2>Confirmer la quête de <span className="who">{tentative.joueur.pseudo}</span> ?</h2>
         <p>
           Tu confirmes avoir vu {tentative.joueur.pseudo} réussir « {tentative.quete.titre} ».
-          Ton vote compte pour {nbVotesApres}/3.
+          Ton vote compte pour {nbVotesApres}/{majorite}.
         </p>
         <div className="modal-actions">
           <button className="btn-annuler" onClick={onAnnuler} disabled={enCours}>Annuler</button>

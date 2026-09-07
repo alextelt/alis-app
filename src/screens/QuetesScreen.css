@@ -1,3 +1,57 @@
+.soiree-banner-row {
+  padding: 14px 18px 0;
+}
+
+.soiree-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 10px 14px;
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+
+.soiree-banner-btn {
+  flex-shrink: 0;
+  background: var(--gold);
+  border: 1px solid var(--gold);
+  color: #1A1410;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 7px 12px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.soiree-banner-btn:hover { background: var(--gold-bright); }
+
+button.soiree-banner.active {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  border-color: var(--vert-bright);
+  color: var(--text);
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+}
+
+button.soiree-banner.active:hover { border-color: var(--gold); }
+
+.soiree-banner-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--vert-bright);
+  flex-shrink: 0;
+  box-shadow: 0 0 0 3px rgba(110, 138, 84, 0.25);
+}
+
 .propose-row {
   padding: 14px 18px 0;
 }
