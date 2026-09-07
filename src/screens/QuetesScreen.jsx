@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useMemo } from 'react'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../AuthContext'
 import { useSoireeActive } from '../useSoireeActive'
-import { estAujourdhui, moinsDune_heure, LABELS_CATEGORIE, ORDRE_CATEGORIES, NIVEAUX_DIFFICULTE } from '../utils'
+import { memeJourDeJeu, moinsDune_heure, LABELS_CATEGORIE, ORDRE_CATEGORIES, NIVEAUX_DIFFICULTE } from '../utils'
 import SoireeEcran from '../components/SoireeEcran'
 import './QuetesScreen.css'
 
@@ -73,7 +73,7 @@ export default function QuetesScreen() {
   // Détermine l'état d'une quête pour l'utilisateur courant
   function etatQuete(queteId) {
     const validee = mesValidations.find(
-      (v) => v.quete_id === queteId && v.statut === 'validée' && estAujourdhui(v.date_creation)
+      (v) => v.quete_id === queteId && v.statut === 'validée' && memeJourDeJeu(v.date_creation)
     )
     if (validee) return { type: 'fait' }
 

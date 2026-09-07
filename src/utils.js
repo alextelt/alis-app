@@ -9,6 +9,22 @@ export function estAujourdhui(dateIso) {
   )
 }
 
+// Compare deux dates selon le "jour de jeu" (6h du matin à 6h du matin), pas le jour calendaire
+export function memeJourDeJeu(dateIso1, dateIso2 = new Date()) {
+  const decaler = (d) => {
+    const date = new Date(d)
+    date.setHours(date.getHours() - 6)
+    return date
+  }
+  const d1 = decaler(dateIso1)
+  const d2 = decaler(dateIso2)
+  return (
+    d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate()
+  )
+}
+
 // Vérifie si une date ISO date de moins d'1h
 export function moinsDune_heure(dateIso) {
   const d = new Date(dateIso)
