@@ -40,16 +40,16 @@ export function minutesAvantExpiration(dateIso) {
 }
 
 // Calcule le niveau et la progression XP à partir de l'XP total,
-// selon la règle : 5 XP pour le niveau 2, puis +10% par niveau suivant
+// selon la règle : 500 XP pour le niveau 2, puis +1% par niveau suivant
 export function calculerNiveau(xpTotal) {
   let niveau = 1
-  let xpPourProchainNiveau = 5
+  let xpPourProchainNiveau = 500
   let xpCumule = 0
 
   while (xpTotal >= xpCumule + xpPourProchainNiveau) {
     xpCumule += xpPourProchainNiveau
     niveau += 1
-    xpPourProchainNiveau = Math.round(xpPourProchainNiveau * 1.1)
+    xpPourProchainNiveau = Math.round(xpPourProchainNiveau * 1.01)
   }
 
   const xpDansNiveauActuel = xpTotal - xpCumule
