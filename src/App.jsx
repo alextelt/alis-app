@@ -5,7 +5,6 @@ import WaitingScreen from './screens/WaitingScreen'
 import BottomNav from './components/BottomNav'
 import Avatar from './components/Avatar'
 import QuetesScreen from './screens/QuetesScreen'
-import VotesScreen from './screens/VotesScreen'
 import AlisScreen from './screens/AlisScreen'
 import OutilsScreen from './screens/OutilsScreen'
 import ProfilScreen from './screens/ProfilScreen'
@@ -51,7 +50,6 @@ function AppContent() {
   // Connecté et approuvé -> appli principale
   const ecrans = {
     quetes: <QuetesScreen />,
-    votes: <VotesScreen />,
     alis: <AlisScreen />,
     outils: <OutilsScreen />,
     profil: <ProfilScreen />,

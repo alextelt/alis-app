@@ -2,12 +2,15 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../AuthContext'
 import { useSoireeActive } from '../useSoireeActive'
+import { minutesAvantExpiration } from '../utils'
 import Avatar from './Avatar'
 import './SoireeEcran.css'
 
 export default function SoireeEcran({ onFermer }) {
-  const { user, estAdmin } = useAuth()
-  const { soireeActive, participants, chargement, recharger } = useSoireeActive(user)
+  const { user, profile, estAdmin } = useAuth()
+  const { soireeActive, participants, majorite, chargement, recharger } = useSoireeActive(user)
+
+  const [ongletActif, setOngletActif] = useState('participants')
 
   const [amis, setAmis] = useState([])
   const [chargementAmis, setChargementAmis] = useState(true)
@@ -18,6 +21,12 @@ export default function SoireeEcran({ onFermer }) {
   const [participantDeplie, setParticipantDeplie] = useState(null)
   const [competencesParticipant, setCompetencesParticipant] = useState({})
   const [chargementCompetences, setChargementCompetences] = useState(false)
+
+  const [tentatives, setTentatives] = useState([])
+  const [chargementVotes, setChargementVotes] = useState(true)
+  const [erreurVotes, setErreurVotes] = useState(null)
+  const [tentativePourVote, setTentativePourVote] = useState(null)
+  const [actionEnCoursVote, setActionEnCoursVote] = useState(null)
 
   const chargerAmis = useCallback(async () => {
     setChargementAmis(true)
@@ -41,6 +50,41 @@ export default function SoireeEcran({ onFermer }) {
   useEffect(() => {
     if (!chargement && !soireeActive) chargerAmis()
   }, [chargement, soireeActive, chargerAmis])
+
+  const chargerVotes = useCallback(async () => {
+    if (!soireeActive) {
+      setTentatives([])
+      setChargementVotes(false)
+      return
+    }
+
+    setErreurVotes(null)
+    const uneHeureAvant = new Date(Date.now() - 60 * 60 * 1000).toISOString()
+
+    const { data, error } = await supabase
+      .from('quetes_validations')
+      .select(`
+        id, quete_id, joueur_id, statut, date_creation,
+        quete:quetes ( titre, description, xp_recompense ),
+        joueur:profiles!quetes_validations_joueur_id_fkey ( pseudo, avatar_url ),
+        votes ( votant_id, votant:profiles!votes_votant_id_fkey ( pseudo ) )
+      `)
+      .eq('statut', 'en_attente')
+      .eq('soiree_id', soireeActive.id)
+      .gte('date_creation', uneHeureAvant)
+      .order('date_creation', { ascending: true })
+
+    if (error) setErreurVotes(error.message)
+    else setTentatives(data)
+
+    setChargementVotes(false)
+  }, [soireeActive])
+
+  useEffect(() => {
+    chargerVotes()
+    const interval = setInterval(chargerVotes, 30000)
+    return () => clearInterval(interval)
+  }, [chargerVotes])
 
   function toggleSelection(amiId) {
     setSelection((prev) => (prev.includes(amiId) ? prev.filter((id) => id !== amiId) : [...prev, amiId]))
@@ -137,6 +181,33 @@ export default function SoireeEcran({ onFermer }) {
     recharger()
   }
 
+  async function confirmerVote(tentative) {
+    setActionEnCoursVote(tentative.id)
+    const { error } = await supabase.from('votes').insert({
+      validation_id: tentative.id,
+      votant_id: user.id,
+    })
+    setActionEnCoursVote(null)
+    setTentativePourVote(null)
+    if (error) {
+      alert("Impossible d'enregistrer ton vote : " + error.message)
+      return
+    }
+    chargerVotes()
+  }
+
+  async function retirerTentative(tentative) {
+    if (!confirm(`Retirer ta tentative "${tentative.quete.titre}" ?`)) return
+    setActionEnCoursVote(tentative.id)
+    const { error } = await supabase.from('quetes_validations').delete().eq('id', tentative.id)
+    setActionEnCoursVote(null)
+    if (error) {
+      alert('Impossible de retirer cette tentative : ' + error.message)
+      return
+    }
+    chargerVotes()
+  }
+
   const peutTerminer = soireeActive && (soireeActive.createur_id === user.id || estAdmin)
 
   return (
@@ -155,38 +226,139 @@ export default function SoireeEcran({ onFermer }) {
               {participants.length} participant{participants.length > 1 ? 's' : ''}
             </div>
 
-            <div className="se-participants-list">
-              {participants.map((p) => (
-                <div key={p.id} className="se-participant-card">
-                  <button className="se-participant-row" onClick={() => toggleParticipant(p)} type="button">
-                    <Avatar pseudo={p.pseudo} avatarUrl={p.avatarUrl} size={38} />
-                    <span className="se-participant-name">{p.pseudo}</span>
-                    <span className="se-participant-chevron">
-                      {participantDeplie === p.profileId ? '▲' : '▼'}
-                    </span>
-                  </button>
-
-                  {participantDeplie === p.profileId && (
-                    <div className="se-participant-competences">
-                      {chargementCompetences && !competencesParticipant[p.profileId] ? (
-                        <div className="se-competences-note">Chargement...</div>
-                      ) : (competencesParticipant[p.profileId] || []).length === 0 ? (
-                        <div className="se-competences-note">Aucune Alis débloquée.</div>
-                      ) : (
-                        competencesParticipant[p.profileId].map((c) => (
-                          <div key={c.competence.id} className="se-competence-row">
-                            <span className="se-competence-name">{c.competence.nom}</span>
-                            <span className="se-competence-effect">
-                              {effetActuel(c.competence, c.points_investis)}
-                            </span>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))}
+            <div className="se-tabs">
+              <button
+                className={`se-tab ${ongletActif === 'participants' ? 'active' : ''}`}
+                onClick={() => setOngletActif('participants')}
+                type="button"
+              >
+                Participants
+              </button>
+              <button
+                className={`se-tab ${ongletActif === 'votes' ? 'active' : ''}`}
+                onClick={() => setOngletActif('votes')}
+                type="button"
+              >
+                Quêtes à valider
+                {tentatives.length > 0 && <span className="se-tab-badge">{tentatives.length}</span>}
+              </button>
             </div>
+
+            {ongletActif === 'participants' && (
+              <div className="se-participants-list">
+                {participants.map((p) => (
+                  <div key={p.id} className="se-participant-card">
+                    <button className="se-participant-row" onClick={() => toggleParticipant(p)} type="button">
+                      <Avatar pseudo={p.pseudo} avatarUrl={p.avatarUrl} size={38} />
+                      <span className="se-participant-name">{p.pseudo}</span>
+                      <span className="se-participant-chevron">
+                        {participantDeplie === p.profileId ? '▲' : '▼'}
+                      </span>
+                    </button>
+
+                    {participantDeplie === p.profileId && (
+                      <div className="se-participant-competences">
+                        {chargementCompetences && !competencesParticipant[p.profileId] ? (
+                          <div className="se-competences-note">Chargement...</div>
+                        ) : (competencesParticipant[p.profileId] || []).length === 0 ? (
+                          <div className="se-competences-note">Aucune Alis débloquée.</div>
+                        ) : (
+                          competencesParticipant[p.profileId].map((c) => (
+                            <div key={c.competence.id} className="se-competence-row">
+                              <span className="se-competence-name">{c.competence.nom}</span>
+                              <span className="se-competence-effect">
+                                {effetActuel(c.competence, c.points_investis)}
+                              </span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {ongletActif === 'votes' && (
+              <div className="se-votes-list">
+                {chargementVotes ? (
+                  <div className="se-competences-note">Chargement...</div>
+                ) : erreurVotes ? (
+                  <div className="se-erreur">{erreurVotes}</div>
+                ) : tentatives.length === 0 ? (
+                  <div className="empty-state">Aucune tentative en attente pour le moment.</div>
+                ) : (
+                  tentatives.map((t) => {
+                    const estMoi = t.joueur_id === user.id
+                    const dejaVote = t.votes.some((v) => v.votant_id === user.id)
+                    const nbVotes = t.votes.length
+                    const minutesRestantes = minutesAvantExpiration(t.date_creation)
+                    const nomsVotants = t.votes.map((v) => v.votant.pseudo).join(', ')
+
+                    return (
+                      <div key={t.id} className={`vote-card ${estMoi ? 'mine' : ''}`}>
+                        <div className="vote-top">
+                          <div className="vote-who">
+                            <Avatar
+                              pseudo={estMoi ? profile.pseudo : t.joueur.pseudo}
+                              avatarUrl={estMoi ? profile.avatar_url : t.joueur.avatar_url}
+                              size={32}
+                            />
+                            <div>
+                              <div className="vote-name">{estMoi ? 'Toi' : t.joueur.pseudo}</div>
+                              <div className="vote-quest">{t.quete.titre}</div>
+                            </div>
+                          </div>
+                          <div className="vote-xp">+{t.quete.xp_recompense} XP</div>
+                        </div>
+
+                        <div className="vote-desc">{t.quete.description}</div>
+
+                        <div className="vote-progress-row">
+                          <div className="vote-track">
+                            <div
+                              className="vote-fill"
+                              style={{ width: `${Math.min(100, (nbVotes / majorite) * 100)}%` }}
+                            ></div>
+                          </div>
+                          <span className="vote-count">{nbVotes}/{majorite}</span>
+                        </div>
+
+                        <div className="vote-voters">
+                          {nbVotes > 0 ? `Validé par ${nomsVotants}` : "Aucun vote pour l'instant"}
+                        </div>
+
+                        <div className="vote-bottom">
+                          <span className={`vote-timer ${minutesRestantes <= 10 ? 'warn' : ''}`}>
+                            Expire dans {minutesRestantes} min
+                          </span>
+
+                          {estMoi ? (
+                            <button
+                              className="vote-action-btn retirer"
+                              onClick={() => retirerTentative(t)}
+                              disabled={actionEnCoursVote === t.id}
+                            >
+                              ✕ Retirer ma quête
+                            </button>
+                          ) : dejaVote ? (
+                            <button className="vote-action-btn deja-vote" disabled>Déjà voté</button>
+                          ) : (
+                            <button
+                              className="vote-action-btn voter"
+                              onClick={() => setTentativePourVote(t)}
+                              disabled={actionEnCoursVote === t.id}
+                            >
+                              Voter pour cette quête
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })
+                )}
+              </div>
+            )}
 
             {peutTerminer ? (
               <button className="se-danger-btn" onClick={terminerSoiree} disabled={actionEnCours} type="button">
@@ -239,6 +411,44 @@ export default function SoireeEcran({ onFermer }) {
             </button>
           </>
         )}
+      </div>
+
+      {tentativePourVote && (
+        <ModaleConfirmationVote
+          tentative={tentativePourVote}
+          majorite={majorite}
+          onAnnuler={() => setTentativePourVote(null)}
+          onConfirmer={() => confirmerVote(tentativePourVote)}
+          enCours={actionEnCoursVote === tentativePourVote.id}
+        />
+      )}
+    </div>
+  )
+}
+
+function ModaleConfirmationVote({ tentative, majorite, onAnnuler, onConfirmer, enCours }) {
+  const nbVotesApres = tentative.votes.length + 1
+
+  return (
+    <div className="overlay" onClick={onAnnuler}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-icon">
+          <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 11l3 3L22 4"/>
+            <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+          </svg>
+        </div>
+        <h2>Confirmer la quête de <span className="who">{tentative.joueur.pseudo}</span> ?</h2>
+        <p>
+          Tu confirmes avoir vu {tentative.joueur.pseudo} réussir « {tentative.quete.titre} ».
+          Ton vote compte pour {nbVotesApres}/{majorite}.
+        </p>
+        <div className="modal-actions">
+          <button className="btn-annuler" onClick={onAnnuler} disabled={enCours}>Annuler</button>
+          <button className="btn-confirmer" onClick={onConfirmer} disabled={enCours}>
+            {enCours ? '...' : 'Je confirme'}
+          </button>
+        </div>
       </div>
     </div>
   )

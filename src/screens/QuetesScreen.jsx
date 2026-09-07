@@ -18,6 +18,28 @@ export default function QuetesScreen() {
   const [modaleProposerOuverte, setModaleProposerOuverte] = useState(false)
   const [soumissionEnCours, setSoumissionEnCours] = useState(false)
   const [soireeEcranOuvert, setSoireeEcranOuvert] = useState(false)
+  const [nbEnAttenteVote, setNbEnAttenteVote] = useState(0)
+
+  const chargerNbEnAttenteVote = useCallback(async () => {
+    if (!soireeActive) {
+      setNbEnAttenteVote(0)
+      return
+    }
+    const uneHeureAvant = new Date(Date.now() - 60 * 60 * 1000).toISOString()
+    const { count } = await supabase
+      .from('quetes_validations')
+      .select('id', { count: 'exact', head: true })
+      .eq('statut', 'en_attente')
+      .eq('soiree_id', soireeActive.id)
+      .gte('date_creation', uneHeureAvant)
+    setNbEnAttenteVote(count ?? 0)
+  }, [soireeActive])
+
+  useEffect(() => {
+    chargerNbEnAttenteVote()
+    const interval = setInterval(chargerNbEnAttenteVote, 30000)
+    return () => clearInterval(interval)
+  }, [chargerNbEnAttenteVote])
 
   const charger = useCallback(async () => {
     setErreur(null)
@@ -139,6 +161,7 @@ export default function QuetesScreen() {
             >
               <span className="soiree-banner-dot" />
               Soirée en cours · {nbParticipants} participant{nbParticipants > 1 ? 's' : ''}
+              {nbEnAttenteVote > 0 && <span className="soiree-banner-badge">{nbEnAttenteVote}</span>}
             </button>
           ) : (
             <div className="soiree-banner">

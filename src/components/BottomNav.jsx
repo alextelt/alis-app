@@ -8,11 +8,6 @@ const ONGLETS = [
     icon: <path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />,
   },
   {
-    id: 'votes',
-    label: 'Votes',
-    icon: <path d="M22 11.08V12a10 10 0 11-5.93-9.14M22 4L12 14.01l-3-3" />,
-  },
-  {
     id: 'alis',
     label: 'Alis',
     icon: <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />,
@@ -35,15 +30,14 @@ const ONGLETS = [
 ]
 
 const BADGES_PAR_ONGLET = {
-  votes: 'quetesAVoterEnAttente',
   profil: 'demandesAmisEnAttente',
 }
 
 export default function BottomNav({ ecranActif, onChangerEcran }) {
   const { user, estAdmin } = useAuth()
-  const { demandesAmisEnAttente, quetesAVoterEnAttente, elementsAdminEnAttente } = useNotificationCounts(user, estAdmin)
+  const { demandesAmisEnAttente, elementsAdminEnAttente } = useNotificationCounts(user, estAdmin)
 
-  const compteurs = { demandesAmisEnAttente, quetesAVoterEnAttente }
+  const compteurs = { demandesAmisEnAttente }
 
   return (
     <nav className="bottom-nav">
