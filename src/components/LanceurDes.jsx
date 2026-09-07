@@ -8,6 +8,7 @@ export default function LanceurDes({ onFermer }) {
   const [facesPersonnalise, setFacesPersonnalise] = useState('')
   const [resultats, setResultats] = useState([])
   const [enAnimation, setEnAnimation] = useState(false)
+  const [groupeAnime, setGroupeAnime] = useState(null)
 
   function ajouterGroupe(faces, quantite = 1) {
     setResultats([])
@@ -18,6 +19,8 @@ export default function LanceurDes({ onFermer }) {
       }
       return [...groupes, { id: faces, faces, nombre: quantite }]
     })
+    setGroupeAnime(faces)
+    setTimeout(() => setGroupeAnime(null), 350)
   }
 
   function ajouterPersonnalise() {
@@ -101,7 +104,7 @@ export default function LanceurDes({ onFermer }) {
         ) : (
           <div className="dice-groups-list">
             {groupesDes.map((g) => (
-              <div key={g.faces} className="dice-group-card">
+              <div key={g.faces} className={`dice-group-card ${groupeAnime === g.faces ? 'secoue' : ''}`}>
                 <div className="dice-group-label">d{g.faces}</div>
                 <div className="dice-group-controls">
                   <button

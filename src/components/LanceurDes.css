@@ -175,6 +175,18 @@
 
 .dice-group-remove:hover { background: rgba(122, 49, 49, 0.15); }
 
+.dice-group-card.secoue {
+  animation: secousse 0.35s ease-in-out;
+}
+
+@keyframes secousse {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+
 .dice-launch-btn {
   width: 100%;
   background: var(--gold);
