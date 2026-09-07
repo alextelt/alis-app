@@ -15,12 +15,15 @@ export default function SoireeEcran({ onFermer }) {
   const [amis, setAmis] = useState([])
   const [chargementAmis, setChargementAmis] = useState(true)
   const [selection, setSelection] = useState([])
+  const [budgetAlis, setBudgetAlis] = useState(5)
   const [creationEnCours, setCreationEnCours] = useState(false)
   const [erreur, setErreur] = useState(null)
   const [actionEnCours, setActionEnCours] = useState(false)
   const [participantDeplie, setParticipantDeplie] = useState(null)
   const [competencesParticipant, setCompetencesParticipant] = useState({})
   const [chargementCompetences, setChargementCompetences] = useState(false)
+  const [budgetUtilise, setBudgetUtilise] = useState(0)
+  const [actionEnCoursUsage, setActionEnCoursUsage] = useState(null)
 
   const [tentatives, setTentatives] = useState([])
   const [chargementVotes, setChargementVotes] = useState(true)
@@ -86,6 +89,27 @@ export default function SoireeEcran({ onFermer }) {
     return () => clearInterval(interval)
   }, [chargerVotes])
 
+  const chargerBudget = useCallback(async () => {
+    if (!soireeActive) {
+      setBudgetUtilise(0)
+      return
+    }
+    const { data, error } = await supabase
+      .from('competence_utilisations')
+      .select('competence:competences_aloxis(cout_points)')
+      .eq('profile_id', user.id)
+      .eq('soiree_id', soireeActive.id)
+
+    if (!error) {
+      const total = (data || []).reduce((s, u) => s + (u.competence?.cout_points || 0), 0)
+      setBudgetUtilise(total)
+    }
+  }, [soireeActive, user.id])
+
+  useEffect(() => {
+    chargerBudget()
+  }, [chargerBudget])
+
   function toggleSelection(amiId) {
     setSelection((prev) => (prev.includes(amiId) ? prev.filter((id) => id !== amiId) : [...prev, amiId]))
   }
@@ -94,9 +118,11 @@ export default function SoireeEcran({ onFermer }) {
     setErreur(null)
     setCreationEnCours(true)
 
+    const budgetBorne = Math.min(30, Math.max(0, parseInt(budgetAlis, 10) || 0))
+
     const { data: soiree, error: erreurSoiree } = await supabase
       .from('soirees')
-      .insert({ createur_id: user.id, statut: 'ouverte' })
+      .insert({ createur_id: user.id, statut: 'ouverte', budget_alis_points: budgetBorne })
       .select()
       .single()
 
@@ -132,9 +158,8 @@ export default function SoireeEcran({ onFermer }) {
       setChargementCompetences(true)
       const { data, error } = await supabase
         .from('profiles_competences')
-        .select('points_investis, competence:competences_aloxis(*)')
+        .select('competence:competences_aloxis(id, nom, niveau, cout_points, arc:arcs(id, nom))')
         .eq('profile_id', participant.profileId)
-        .gt('points_investis', 0)
 
       if (!error) {
         setCompetencesParticipant((prev) => ({ ...prev, [participant.profileId]: data || [] }))
@@ -143,13 +168,31 @@ export default function SoireeEcran({ onFermer }) {
     }
   }
 
-  function effetActuel(competence, points) {
-    const paliers = Object.entries(competence.bareme || {})
-      .map(([seuil, effet]) => ({ seuil: parseInt(seuil, 10), effet }))
-      .sort((a, b) => a.seuil - b.seuil)
-    const atteints = paliers.filter((p) => p.seuil <= points)
-    const dernier = atteints[atteints.length - 1]
-    return dernier ? `${dernier.effet} · palier à ${dernier.seuil} Alis` : ''
+  function grouperParArc(liste) {
+    const groupes = {}
+    for (const item of liste) {
+      const c = item.competence
+      if (!c) continue
+      const arcNom = c.arc?.nom || 'Autre'
+      if (!groupes[arcNom]) groupes[arcNom] = []
+      groupes[arcNom].push(c)
+    }
+    return groupes
+  }
+
+  async function utiliserCompetence(competence) {
+    setActionEnCoursUsage(competence.id)
+    const { error } = await supabase.from('competence_utilisations').insert({
+      profile_id: user.id,
+      competence_id: competence.id,
+      soiree_id: soireeActive.id,
+    })
+    setActionEnCoursUsage(null)
+    if (error) {
+      alert("Impossible d'utiliser cette Alis : " + error.message)
+      return
+    }
+    chargerBudget()
   }
 
   async function terminerSoiree() {
@@ -258,19 +301,52 @@ export default function SoireeEcran({ onFermer }) {
 
                     {participantDeplie === p.profileId && (
                       <div className="se-participant-competences">
+                        {p.profileId === user.id && (
+                          <div className="se-budget-row">
+                            Budget restant :{' '}
+                            <strong>
+                              {Math.max(0, (soireeActive.budget_alis_points ?? 0) - budgetUtilise)}
+                            </strong>{' '}
+                            / {soireeActive.budget_alis_points ?? 0} pts
+                          </div>
+                        )}
+
                         {chargementCompetences && !competencesParticipant[p.profileId] ? (
                           <div className="se-competences-note">Chargement...</div>
                         ) : (competencesParticipant[p.profileId] || []).length === 0 ? (
                           <div className="se-competences-note">Aucune Alis débloquée.</div>
                         ) : (
-                          competencesParticipant[p.profileId].map((c) => (
-                            <div key={c.competence.id} className="se-competence-row">
-                              <span className="se-competence-name">{c.competence.nom}</span>
-                              <span className="se-competence-effect">
-                                {effetActuel(c.competence, c.points_investis)}
-                              </span>
-                            </div>
-                          ))
+                          Object.entries(grouperParArc(competencesParticipant[p.profileId])).map(
+                            ([arcNom, comps]) => (
+                              <div key={arcNom} className="se-competence-arc-group">
+                                <div className="se-competence-arc-title">{arcNom}</div>
+                                {comps.map((c) => {
+                                  const estMoi = p.profileId === user.id
+                                  const budgetRestant = (soireeActive.budget_alis_points ?? 0) - budgetUtilise
+                                  const peutUtiliser = estMoi && c.cout_points <= budgetRestant
+
+                                  return (
+                                    <div key={c.id} className="se-competence-row">
+                                      <span className="se-competence-name">
+                                        {c.nom} <span className="se-competence-niveau">Niv. {c.niveau}</span>
+                                      </span>
+                                      {estMoi ? (
+                                        <button
+                                          className="se-use-btn"
+                                          onClick={() => utiliserCompetence(c)}
+                                          disabled={!peutUtiliser || actionEnCoursUsage === c.id}
+                                        >
+                                          {actionEnCoursUsage === c.id ? '...' : `Utiliser (${c.cout_points} pts)`}
+                                        </button>
+                                      ) : (
+                                        <span className="se-competence-effect">{c.cout_points} pts</span>
+                                      )}
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            )
+                          )
                         )}
                       </div>
                     )}
@@ -398,6 +474,16 @@ export default function SoireeEcran({ onFermer }) {
                 ))}
               </div>
             )}
+
+            <div className="se-field-label">Points d'Alis utilisables par joueur</div>
+            <input
+              type="number"
+              className="se-input"
+              min={0}
+              max={30}
+              value={budgetAlis}
+              onChange={(e) => setBudgetAlis(e.target.value)}
+            />
 
             {erreur && <div className="se-erreur">{erreur}</div>}
 

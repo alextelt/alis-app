@@ -66,9 +66,8 @@ export default function AmisScreen({ onRetour }) {
       if (amiIds.length > 0) {
         const { data: compData, error: compError } = await supabase
           .from('profiles_competences')
-          .select('profile_id, points_investis, competence:competences_aloxis(*)')
+          .select('profile_id, competence:competences_aloxis(id, nom, niveau, cout_points)')
           .in('profile_id', amiIds)
-          .gt('points_investis', 0)
 
         if (!compError) {
           const parAmi = {}
@@ -185,15 +184,6 @@ export default function AmisScreen({ onRetour }) {
       return
     }
     charger()
-  }
-
-  function effetActuel(competence, points) {
-    const paliers = Object.entries(competence.bareme || {})
-      .map(([seuil, effet]) => ({ seuil: parseInt(seuil, 10), effet }))
-      .sort((a, b) => a.seuil - b.seuil)
-    const atteints = paliers.filter((p) => p.seuil <= points)
-    const dernier = atteints[atteints.length - 1]
-    return dernier ? `${dernier.effet} · palier à ${dernier.seuil} Alis` : ''
   }
 
   if (chargement) {
@@ -335,7 +325,9 @@ export default function AmisScreen({ onRetour }) {
                     {competences.map((c) => (
                       <div key={c.competence.id} className="ami-friend-competence">
                         <span className="ami-friend-competence-name">{c.competence.nom}</span>
-                        <span className="ami-friend-competence-effect">{effetActuel(c.competence, c.points_investis)}</span>
+                        <span className="ami-friend-competence-effect">
+                          Niveau {c.competence.niveau} · {c.competence.cout_points} pts
+                        </span>
                       </div>
                     ))}
                   </div>

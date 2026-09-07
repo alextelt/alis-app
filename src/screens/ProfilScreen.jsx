@@ -1,7 +1,7 @@
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../AuthContext'
-import { calculerNiveau, estAujourdhui } from '../utils'
+import { calculerNiveau } from '../utils'
 import Avatar from '../components/Avatar'
 import AvatarPicker from '../components/AvatarPicker'
 import AmisScreen from './AmisScreen'
@@ -11,11 +11,9 @@ export default function ProfilScreen() {
   const { user, profile, deconnexion, rafraichirProfil } = useAuth()
   const [nbQuetesReussies, setNbQuetesReussies] = useState(0)
   const [competencesDebloquees, setCompetencesDebloquees] = useState([])
-  const [utilisationsRecentes, setUtilisationsRecentes] = useState([])
   const [historique, setHistorique] = useState([])
   const [chargement, setChargement] = useState(true)
   const [erreur, setErreur] = useState(null)
-  const [actionEnCours, setActionEnCours] = useState(null)
   const [pickerOuvert, setPickerOuvert] = useState(false)
   const [avatarEnCours, setAvatarEnCours] = useState(false)
   const [vueAmis, setVueAmis] = useState(false)
@@ -25,7 +23,7 @@ export default function ProfilScreen() {
   const charger = useCallback(async () => {
     setErreur(null)
 
-    const [validationsRes, pointsRes, utilRes] = await Promise.all([
+    const [validationsRes, pointsRes] = await Promise.all([
       supabase
         .from('quetes_validations')
         .select('id, date_creation, quete:quetes(titre, xp_recompense)')
@@ -34,14 +32,8 @@ export default function ProfilScreen() {
         .order('date_creation', { ascending: false }),
       supabase
         .from('profiles_competences')
-        .select('points_investis, competence:competences_aloxis(*)')
-        .eq('profile_id', user.id)
-        .gt('points_investis', 0),
-      supabase
-        .from('competence_utilisations')
-        .select('*')
-        .eq('profile_id', user.id)
-        .gte('date_utilisation', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
+        .select('points_investis, competence:competences_aloxis(id, nom, niveau, cout_points, arc:arcs(id, nom))')
+        .eq('profile_id', user.id),
     ])
 
     if (validationsRes.error) setErreur(validationsRes.error.message)
@@ -52,9 +44,6 @@ export default function ProfilScreen() {
 
     if (pointsRes.error) setErreur(pointsRes.error.message)
     else setCompetencesDebloquees(pointsRes.data)
-
-    if (utilRes.error) setErreur(utilRes.error.message)
-    else setUtilisationsRecentes(utilRes.data)
 
     setChargement(false)
   }, [user.id])
@@ -78,24 +67,13 @@ export default function ProfilScreen() {
 
   const { niveau, xpDansNiveauActuel, xpPourProchainNiveau, progression } = calculerNiveau(profile.xp_total)
   const alisDepenses = competencesDebloquees.reduce((s, p) => s + p.points_investis, 0)
-  const utiliseAujourdhui = useMemo(
-    () => utilisationsRecentes.some((u) => estAujourdhui(u.date_utilisation)),
-    [utilisationsRecentes]
-  )
 
-  async function activerCompetence(competenceId) {
-    setActionEnCours(competenceId)
-    const { error } = await supabase.from('competence_utilisations').insert({
-      profile_id: user.id,
-      competence_id: competenceId,
-    })
-    setActionEnCours(null)
-    if (error) {
-      alert("Impossible d'activer cette compétence : " + error.message)
-      return
-    }
-    charger()
-  }
+  const competencesParArc = competencesDebloquees.reduce((groupes, p) => {
+    const arcNom = p.competence?.arc?.nom || 'Autre'
+    if (!groupes[arcNom]) groupes[arcNom] = []
+    groupes[arcNom].push(p.competence)
+    return groupes
+  }, {})
 
   async function changerModeDaltonien(actif) {
     setDaltonienEnCours(true)
@@ -124,15 +102,6 @@ export default function ProfilScreen() {
     }
     rafraichirProfil()
     setPickerOuvert(false)
-  }
-
-  function effetActuel(competence, points) {
-    const paliers = Object.entries(competence.bareme || {})
-      .map(([seuil, effet]) => ({ seuil: parseInt(seuil, 10), effet }))
-      .sort((a, b) => a.seuil - b.seuil)
-    const atteints = paliers.filter((p) => p.seuil <= points)
-    const dernier = atteints[atteints.length - 1]
-    return dernier ? `${dernier.effet} · palier à ${dernier.seuil} Alis` : ''
   }
 
   if (chargement) {
@@ -188,26 +157,22 @@ export default function ProfilScreen() {
 
       {competencesDebloquees.length > 0 && (
         <>
-          <div className="section-title">Alis débloqués</div>
-          <div className="unlocked-list">
-            {competencesDebloquees.map((p) => (
-              <div key={p.competence.id} className="unlocked-row">
-                <div>
-                  <div className="unlocked-name">{p.competence.nom}</div>
-                  <div className="unlocked-effect">{effetActuel(p.competence, p.points_investis)}</div>
-                </div>
-                <button
-                  className="unlock-use-btn"
-                  onClick={() => activerCompetence(p.competence.id)}
-                  disabled={utiliseAujourdhui || actionEnCours === p.competence.id}
-                >
-                  {utiliseAujourdhui ? 'Indispo.' : 'Utiliser'}
-                </button>
+          <div className="section-title">Alis débloquées</div>
+          {Object.entries(competencesParArc).map(([arcNom, comps]) => (
+            <div key={arcNom} className="unlocked-arc-group">
+              <div className="unlocked-arc-title">{arcNom}</div>
+              <div className="unlocked-list">
+                {comps.map((c) => (
+                  <div key={c.id} className="unlocked-row">
+                    <div className="unlocked-name">{c.nom}</div>
+                    <div className="unlocked-meta">Niveau {c.niveau} · {c.cout_points} pts</div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
           <div className="unlocked-note">
-            Une seule Alis utilisable par jour, toutes compétences confondues.
+            Utilisables pendant les soirées, dans la limite du budget fixé pour chacune.
           </div>
         </>
       )}
