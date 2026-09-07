@@ -23,6 +23,7 @@ export default function SoireeEcran({ onFermer }) {
   const [competencesParticipant, setCompetencesParticipant] = useState({})
   const [chargementCompetences, setChargementCompetences] = useState(false)
   const [budgetUtilise, setBudgetUtilise] = useState(0)
+  const [competencesUtiliseesIds, setCompetencesUtiliseesIds] = useState(new Set())
   const [actionEnCoursUsage, setActionEnCoursUsage] = useState(null)
 
   const [tentatives, setTentatives] = useState([])
@@ -92,17 +93,19 @@ export default function SoireeEcran({ onFermer }) {
   const chargerBudget = useCallback(async () => {
     if (!soireeActive) {
       setBudgetUtilise(0)
+      setCompetencesUtiliseesIds(new Set())
       return
     }
     const { data, error } = await supabase
       .from('competence_utilisations')
-      .select('competence:competences_aloxis(cout_points)')
+      .select('competence_id, competence:competences_aloxis(cout_points)')
       .eq('profile_id', user.id)
       .eq('soiree_id', soireeActive.id)
 
     if (!error) {
       const total = (data || []).reduce((s, u) => s + (u.competence?.cout_points || 0), 0)
       setBudgetUtilise(total)
+      setCompetencesUtiliseesIds(new Set((data || []).map((u) => u.competence_id)))
     }
   }, [soireeActive, user.id])
 
@@ -323,7 +326,8 @@ export default function SoireeEcran({ onFermer }) {
                                 {comps.map((c) => {
                                   const estMoi = p.profileId === user.id
                                   const budgetRestant = (soireeActive.budget_alis_points ?? 0) - budgetUtilise
-                                  const peutUtiliser = estMoi && c.cout_points <= budgetRestant
+                                  const dejaUtilisee = competencesUtiliseesIds.has(c.id)
+                                  const peutUtiliser = estMoi && !dejaUtilisee && c.cout_points <= budgetRestant
 
                                   return (
                                     <div key={c.id} className="se-competence-row">
@@ -331,13 +335,19 @@ export default function SoireeEcran({ onFermer }) {
                                         {c.nom} <span className="se-competence-niveau">Niv. {c.niveau}</span>
                                       </span>
                                       {estMoi ? (
-                                        <button
-                                          className="se-use-btn"
-                                          onClick={() => utiliserCompetence(c)}
-                                          disabled={!peutUtiliser || actionEnCoursUsage === c.id}
-                                        >
-                                          {actionEnCoursUsage === c.id ? '...' : `Utiliser (${c.cout_points} pts)`}
-                                        </button>
+                                        dejaUtilisee ? (
+                                          <button className="se-use-btn" disabled>
+                                            Déjà utilisée cette soirée
+                                          </button>
+                                        ) : (
+                                          <button
+                                            className="se-use-btn"
+                                            onClick={() => utiliserCompetence(c)}
+                                            disabled={!peutUtiliser || actionEnCoursUsage === c.id}
+                                          >
+                                            {actionEnCoursUsage === c.id ? '...' : `Utiliser (${c.cout_points} pts)`}
+                                          </button>
+                                        )
                                       ) : (
                                         <span className="se-competence-effect">{c.cout_points} pts</span>
                                       )}
