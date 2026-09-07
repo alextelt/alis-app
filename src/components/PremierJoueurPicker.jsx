@@ -3,8 +3,8 @@ import './PremierJoueurPicker.css'
 
 const COULEURS_JOUEURS = ['#C9598A', '#4A8AA8', '#A9843F', '#7B4B9E', '#4A5D3A', '#598AC9', '#59C9A8', '#7A3131', '#3E7A9E', '#D4AF6A']
 
-const DUREE_ATTENTE = 2500
-const DUREE_SUSPENSE = 1200
+const DUREE_ATTENTE = 1000
+const DUREE_SUSPENSE = 800
 const INTERVALLE_SUSPENSE = 100
 
 function prochaineCouleur(touchesActuelles) {
@@ -126,6 +126,7 @@ export default function PremierJoueurPicker({ onFermer }) {
       </button>
 
       {touches.map((t, i) => {
+        const estEnAttentePulse = phase === 'attente' && touches.length >= 2
         const estActif = phase === 'suspense' && i === indexSurbrillance
         const estGagnant = phase === 'resultat' && t.id === gagnantId
         const estPerdant = phase === 'resultat' && t.id !== gagnantId
@@ -134,6 +135,7 @@ export default function PremierJoueurPicker({ onFermer }) {
             <div
               className={[
                 'pj-dot',
+                estEnAttentePulse ? 'pj-dot-attente' : '',
                 estActif ? 'pj-dot-actif' : '',
                 estGagnant ? 'pj-dot-gagnant' : '',
                 estPerdant ? 'pj-dot-perdant' : '',
@@ -149,12 +151,7 @@ export default function PremierJoueurPicker({ onFermer }) {
       )}
 
       {phase === 'attente' && touches.length >= 2 && (
-        <div className="pj-countdown-wrap">
-          <div className="pj-message">Ne bougez plus...</div>
-          <div className="pj-countdown-bar">
-            <div key={touches.length} className="pj-countdown-fill" />
-          </div>
-        </div>
+        <div className="pj-message">Ne bougez plus...</div>
       )}
 
       {phase === 'resultat' && (

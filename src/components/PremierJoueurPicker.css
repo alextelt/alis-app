@@ -41,40 +41,6 @@
   width: 100%;
 }
 
-.pj-countdown-wrap {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  width: 100%;
-}
-
-.pj-countdown-bar {
-  width: 180px;
-  height: 6px;
-  background: var(--bg-panel-2);
-  border: 1px solid var(--border);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.pj-countdown-fill {
-  height: 100%;
-  width: 0%;
-  background: linear-gradient(90deg, var(--gold) 0%, var(--gold-bright) 100%);
-  animation: pj-remplir linear forwards;
-  animation-duration: 2.5s;
-}
-
-@keyframes pj-remplir {
-  from { width: 0%; }
-  to { width: 100%; }
-}
-
 .pj-dot-wrap {
   position: absolute;
   transform: translate(-50%, -50%);
@@ -87,6 +53,15 @@
   border-radius: 50%;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
   transition: transform 0.15s ease, opacity 0.4s ease, box-shadow 0.15s ease;
+}
+
+.pj-dot-attente {
+  animation: pulse-attente 0.4s ease-in-out infinite;
+}
+
+@keyframes pulse-attente {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
 }
 
 .pj-dot-actif {
