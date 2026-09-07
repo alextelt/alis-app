@@ -431,10 +431,25 @@
   font-size: 11px;
 }
 
-.se-competence-effect {
-  color: var(--text-dim);
-  text-align: right;
+.se-badge {
   flex-shrink: 0;
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.se-badge-disponible {
+  background: rgba(212, 175, 106, 0.15);
+  border: 1px solid rgba(212, 175, 106, 0.4);
+  color: var(--gold-bright);
+}
+
+.se-badge-utilisee {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
 }
 
 .se-use-btn {

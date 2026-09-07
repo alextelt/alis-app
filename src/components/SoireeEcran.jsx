@@ -22,8 +22,7 @@ export default function SoireeEcran({ onFermer }) {
   const [participantDeplie, setParticipantDeplie] = useState(null)
   const [competencesParticipant, setCompetencesParticipant] = useState({})
   const [chargementCompetences, setChargementCompetences] = useState(false)
-  const [budgetUtilise, setBudgetUtilise] = useState(0)
-  const [competencesUtiliseesIds, setCompetencesUtiliseesIds] = useState(new Set())
+  const [utilisationsParParticipant, setUtilisationsParParticipant] = useState({})
   const [actionEnCoursUsage, setActionEnCoursUsage] = useState(null)
 
   const [tentatives, setTentatives] = useState([])
@@ -90,28 +89,32 @@ export default function SoireeEcran({ onFermer }) {
     return () => clearInterval(interval)
   }, [chargerVotes])
 
-  const chargerBudget = useCallback(async () => {
+  const chargerUtilisations = useCallback(async () => {
     if (!soireeActive) {
-      setBudgetUtilise(0)
-      setCompetencesUtiliseesIds(new Set())
+      setUtilisationsParParticipant({})
       return
     }
     const { data, error } = await supabase
       .from('competence_utilisations')
-      .select('competence_id, competence:competences_aloxis(cout_points)')
-      .eq('profile_id', user.id)
+      .select('profile_id, competence_id, competence:competences_aloxis(cout_points)')
       .eq('soiree_id', soireeActive.id)
 
     if (!error) {
-      const total = (data || []).reduce((s, u) => s + (u.competence?.cout_points || 0), 0)
-      setBudgetUtilise(total)
-      setCompetencesUtiliseesIds(new Set((data || []).map((u) => u.competence_id)))
+      const parParticipant = {}
+      for (const u of data || []) {
+        if (!parParticipant[u.profile_id]) {
+          parParticipant[u.profile_id] = { total: 0, idsUtilisees: new Set() }
+        }
+        parParticipant[u.profile_id].total += u.competence?.cout_points || 0
+        parParticipant[u.profile_id].idsUtilisees.add(u.competence_id)
+      }
+      setUtilisationsParParticipant(parParticipant)
     }
-  }, [soireeActive, user.id])
+  }, [soireeActive])
 
   useEffect(() => {
-    chargerBudget()
-  }, [chargerBudget])
+    chargerUtilisations()
+  }, [chargerUtilisations])
 
   function toggleSelection(amiId) {
     setSelection((prev) => (prev.includes(amiId) ? prev.filter((id) => id !== amiId) : [...prev, amiId]))
@@ -195,7 +198,7 @@ export default function SoireeEcran({ onFermer }) {
       alert("Impossible d'utiliser cette Alis : " + error.message)
       return
     }
-    chargerBudget()
+    chargerUtilisations()
   }
 
   async function terminerSoiree() {
@@ -304,60 +307,69 @@ export default function SoireeEcran({ onFermer }) {
 
                     {participantDeplie === p.profileId && (
                       <div className="se-participant-competences">
-                        {p.profileId === user.id && (
-                          <div className="se-budget-row">
-                            Budget restant :{' '}
-                            <strong>
-                              {Math.max(0, (soireeActive.budget_alis_points ?? 0) - budgetUtilise)}
-                            </strong>{' '}
-                            / {soireeActive.budget_alis_points ?? 0} pts
-                          </div>
-                        )}
+                        {(() => {
+                          const infosUtilisation = utilisationsParParticipant[p.profileId] || {
+                            total: 0,
+                            idsUtilisees: new Set(),
+                          }
+                          const budgetRestant = (soireeActive.budget_alis_points ?? 0) - infosUtilisation.total
 
-                        {chargementCompetences && !competencesParticipant[p.profileId] ? (
-                          <div className="se-competences-note">Chargement...</div>
-                        ) : (competencesParticipant[p.profileId] || []).length === 0 ? (
-                          <div className="se-competences-note">Aucune Alis débloquée.</div>
-                        ) : (
-                          Object.entries(grouperParArc(competencesParticipant[p.profileId])).map(
-                            ([arcNom, comps]) => (
-                              <div key={arcNom} className="se-competence-arc-group">
-                                <div className="se-competence-arc-title">{arcNom}</div>
-                                {comps.map((c) => {
-                                  const estMoi = p.profileId === user.id
-                                  const budgetRestant = (soireeActive.budget_alis_points ?? 0) - budgetUtilise
-                                  const dejaUtilisee = competencesUtiliseesIds.has(c.id)
-                                  const peutUtiliser = estMoi && !dejaUtilisee && c.cout_points <= budgetRestant
+                          return (
+                            <>
+                              <div className="se-budget-row">
+                                Budget restant :{' '}
+                                <strong>{Math.max(0, budgetRestant)}</strong>{' '}
+                                / {soireeActive.budget_alis_points ?? 0} pts
+                              </div>
 
-                                  return (
-                                    <div key={c.id} className="se-competence-row">
-                                      <span className="se-competence-name">
-                                        {c.nom} <span className="se-competence-niveau">Niv. {c.niveau}</span>
-                                      </span>
-                                      {estMoi ? (
-                                        dejaUtilisee ? (
-                                          <button className="se-use-btn" disabled>
-                                            Déjà utilisée cette soirée
-                                          </button>
-                                        ) : (
-                                          <button
-                                            className="se-use-btn"
-                                            onClick={() => utiliserCompetence(c)}
-                                            disabled={!peutUtiliser || actionEnCoursUsage === c.id}
-                                          >
-                                            {actionEnCoursUsage === c.id ? '...' : `Utiliser (${c.cout_points} pts)`}
-                                          </button>
+                              {chargementCompetences && !competencesParticipant[p.profileId] ? (
+                                <div className="se-competences-note">Chargement...</div>
+                              ) : (competencesParticipant[p.profileId] || []).length === 0 ? (
+                                <div className="se-competences-note">Aucune Alis débloquée.</div>
+                              ) : (
+                                Object.entries(grouperParArc(competencesParticipant[p.profileId])).map(
+                                  ([arcNom, comps]) => (
+                                    <div key={arcNom} className="se-competence-arc-group">
+                                      <div className="se-competence-arc-title">{arcNom}</div>
+                                      {comps.map((c) => {
+                                        const estMoi = p.profileId === user.id
+                                        const dejaUtilisee = infosUtilisation.idsUtilisees.has(c.id)
+                                        const peutUtiliser = estMoi && !dejaUtilisee && c.cout_points <= budgetRestant
+
+                                        return (
+                                          <div key={c.id} className="se-competence-row">
+                                            <span className="se-competence-name">
+                                              {c.nom} <span className="se-competence-niveau">Niv. {c.niveau}</span>
+                                            </span>
+                                            {estMoi ? (
+                                              dejaUtilisee ? (
+                                                <button className="se-use-btn" disabled>
+                                                  Déjà utilisée cette soirée
+                                                </button>
+                                              ) : (
+                                                <button
+                                                  className="se-use-btn"
+                                                  onClick={() => utiliserCompetence(c)}
+                                                  disabled={!peutUtiliser || actionEnCoursUsage === c.id}
+                                                >
+                                                  {actionEnCoursUsage === c.id ? '...' : `Utiliser (${c.cout_points} pts)`}
+                                                </button>
+                                              )
+                                            ) : dejaUtilisee ? (
+                                              <span className="se-badge se-badge-utilisee">✓ Utilisée</span>
+                                            ) : (
+                                              <span className="se-badge se-badge-disponible">Disponible</span>
+                                            )}
+                                          </div>
                                         )
-                                      ) : (
-                                        <span className="se-competence-effect">{c.cout_points} pts</span>
-                                      )}
+                                      })}
                                     </div>
                                   )
-                                })}
-                              </div>
-                            )
+                                )
+                              )}
+                            </>
                           )
-                        )}
+                        })()}
                       </div>
                     )}
                   </div>
