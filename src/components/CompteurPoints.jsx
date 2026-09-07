@@ -317,27 +317,32 @@ export default function CompteurPoints({ onFermer }) {
               const cumul = cumulEnCours[j.id] || 0
               return (
               <div key={j.id} className="cp-score-card" style={{ background: j.couleur }}>
+                {cumul !== 0 && (
+                  <div className="cp-cumul-pill">{cumul > 0 ? `+${cumul}` : cumul}</div>
+                )}
+
                 <div className="cp-score-name">{j.nom}</div>
                 <div className="cp-score-buttons">
                   <button onClick={() => ajouterAuCumul(j.id, -10)} type="button">−10</button>
                   <button onClick={() => ajouterAuCumul(j.id, -5)} type="button">−5</button>
                   <button onClick={() => ajouterAuCumul(j.id, -1)} type="button">−1</button>
                 </div>
-                {cumul !== 0 && (
-                  <div className="cp-cumul-pill">{cumul > 0 ? `+${cumul}` : cumul}</div>
-                )}
-                <div className="cp-score-value">{j.score}</div>
+
+                <div className="cp-score-center">
+                  <div className="cp-score-value">{j.score}</div>
+                  <div className="cp-score-historique">
+                    {j.historique.slice(0, 5).map((h) => (
+                      <span key={h.ts} className="cp-historique-pill">
+                        {h.delta > 0 ? `+${h.delta}` : h.delta}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="cp-score-buttons">
                   <button onClick={() => ajouterAuCumul(j.id, 1)} type="button">+1</button>
                   <button onClick={() => ajouterAuCumul(j.id, 5)} type="button">+5</button>
                   <button onClick={() => ajouterAuCumul(j.id, 10)} type="button">+10</button>
-                </div>
-                <div className="cp-score-historique">
-                  {j.historique.slice(0, 12).map((h) => (
-                    <span key={h.ts} className="cp-historique-pill">
-                      {h.delta > 0 ? `+${h.delta}` : h.delta}
-                    </span>
-                  ))}
                 </div>
               </div>
               )
