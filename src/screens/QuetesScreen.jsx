@@ -106,12 +106,12 @@ export default function QuetesScreen() {
     charger()
   }
 
-  async function proposerQuete({ titre, description, xp_recompense, difficulte, categorie }) {
+  async function proposerQuete({ titre, description, difficulte, categorie }) {
     setSoumissionEnCours(true)
     const { error } = await supabase.from('quetes').insert({
       titre,
       description,
-      xp_recompense,
+      xp_recompense: 3,
       difficulte,
       categorie,
       statut_catalogue: 'proposée',
@@ -248,17 +248,14 @@ export default function QuetesScreen() {
 function ModaleProposerQuete({ onFermer, onSoumettre, enCours }) {
   const [titre, setTitre] = useState('')
   const [description, setDescription] = useState('')
-  const [xp, setXp] = useState(3)
   const [difficulte, setDifficulte] = useState('facile')
   const [categorie, setCategorie] = useState(ORDRE_CATEGORIES[0])
 
   function gererSoumission(e) {
     e.preventDefault()
-    const xpBorne = Math.min(15, Math.max(1, Number(xp) || 1))
     onSoumettre({
       titre: titre.trim(),
       description: description.trim(),
-      xp_recompense: xpBorne,
       difficulte,
       categorie,
     })
@@ -284,17 +281,6 @@ function ModaleProposerQuete({ onFermer, onSoumettre, enCours }) {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
-              required
-            />
-          </div>
-          <div className="field">
-            <label>XP proposé</label>
-            <input
-              type="number"
-              min={1}
-              max={15}
-              value={xp}
-              onChange={(e) => setXp(e.target.value)}
               required
             />
           </div>
