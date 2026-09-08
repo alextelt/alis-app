@@ -356,7 +356,7 @@ function CarteQuete({ quete, etat, onValider, validationEnCours, soireeActive })
         )}
         {etat.type === 'disponible' && (
           <button
-            className="quest-action lancer"
+            className={`quest-action lancer ${!soireeActive ? 'sans-soiree' : ''}`}
             onClick={onValider}
             disabled={validationEnCours || !soireeActive}
           >

@@ -205,6 +205,7 @@ button.soiree-banner.active:hover { border-color: var(--gold); }
 
 .quest-footer {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: 10px;
@@ -240,6 +241,12 @@ button.soiree-banner.active:hover { border-color: var(--gold); }
 
 .quest-action.lancer:hover { background: var(--gold-bright); }
 .quest-action.lancer:disabled { opacity: 0.6; cursor: default; }
+
+.quest-action.sans-soiree {
+  white-space: normal;
+  text-align: center;
+  flex-basis: 100%;
+}
 
 .quest-action.attente {
   background: none;
