@@ -9,6 +9,7 @@ import AlisScreen from './screens/AlisScreen'
 import OutilsScreen from './screens/OutilsScreen'
 import ProfilScreen from './screens/ProfilScreen'
 import AdminScreen from './screens/AdminScreen'
+import { appliquerTheme } from './themes'
 import './theme.css'
 
 function AppContent() {
@@ -17,7 +18,8 @@ function AppContent() {
 
   useEffect(() => {
     document.documentElement.dataset.daltonien = profile?.mode_daltonien ? 'true' : 'false'
-  }, [profile?.mode_daltonien])
+    appliquerTheme(profile?.theme || 'medieval')
+  }, [profile?.mode_daltonien, profile?.theme])
 
   // Session pas encore vérifiée (tout premier chargement)
   if (session === undefined) {

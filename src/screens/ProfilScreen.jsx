@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../AuthContext'
 import { calculerNiveau } from '../utils'
+import { THEMES } from '../themes'
 import Avatar from '../components/Avatar'
 import AvatarPicker from '../components/AvatarPicker'
 import AmisScreen from './AmisScreen'
@@ -23,6 +24,7 @@ export default function ProfilScreen() {
   const [vueAmis, setVueAmis] = useState(false)
   const [nbDemandesRecues, setNbDemandesRecues] = useState(0)
   const [daltonienEnCours, setDaltonienEnCours] = useState(false)
+  const [themeEnCours, setThemeEnCours] = useState(false)
 
   const charger = useCallback(async () => {
     setErreur(null)
@@ -88,6 +90,20 @@ export default function ProfilScreen() {
     setDaltonienEnCours(false)
     if (error) {
       alert('Impossible de changer ce réglage : ' + error.message)
+      return
+    }
+    rafraichirProfil()
+  }
+
+  async function changerTheme(themeId) {
+    setThemeEnCours(true)
+    const { error } = await supabase
+      .from('profiles')
+      .update({ theme: themeId })
+      .eq('id', user.id)
+    setThemeEnCours(false)
+    if (error) {
+      alert('Impossible de changer de thème : ' + error.message)
       return
     }
     rafraichirProfil()
@@ -274,6 +290,22 @@ export default function ProfilScreen() {
       )}
 
       <div className="section-title">Accessibilité</div>
+
+      <div className="theme-selector-label">Thème</div>
+      <div className="theme-selector">
+        {THEMES.map((t) => (
+          <button
+            key={t.id}
+            className={`theme-btn ${(profile.theme || 'medieval') === t.id ? 'active' : ''}`}
+            onClick={() => changerTheme(t.id)}
+            disabled={themeEnCours}
+            type="button"
+          >
+            {t.nom}
+          </button>
+        ))}
+      </div>
+
       <label className="daltonien-toggle">
         <input
           type="checkbox"
