@@ -4,6 +4,7 @@ import PremierJoueurPicker from '../components/PremierJoueurPicker'
 import CompteurPoints from '../components/CompteurPoints'
 import DessinRapide from '../components/DessinRapide'
 import ChronoTour from '../components/ChronoTour'
+import EquipesPicker from '../components/EquipesPicker'
 import './OutilsScreen.css'
 
 export default function OutilsScreen() {
@@ -12,6 +13,7 @@ export default function OutilsScreen() {
   const [compteurOuvert, setCompteurOuvert] = useState(false)
   const [dessinOuvert, setDessinOuvert] = useState(false)
   const [chronoOuvert, setChronoOuvert] = useState(false)
+  const [equipesOuvert, setEquipesOuvert] = useState(false)
 
   return (
     <>
@@ -71,6 +73,16 @@ export default function OutilsScreen() {
             </span>
             <span className="tool-grid-label">Chrono de tour</span>
           </button>
+
+          <button className="tool-grid-btn" onClick={() => setEquipesOuvert(true)} type="button">
+            <span className="tool-grid-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="tool-grid-icon">
+                <circle cx="8" cy="12" r="4" />
+                <circle cx="16" cy="12" r="4" />
+              </svg>
+            </span>
+            <span className="tool-grid-label">Créer des équipes</span>
+          </button>
         </div>
       </div>
 
@@ -79,6 +91,7 @@ export default function OutilsScreen() {
       {compteurOuvert && <CompteurPoints onFermer={() => setCompteurOuvert(false)} />}
       {dessinOuvert && <DessinRapide onFermer={() => setDessinOuvert(false)} />}
       {chronoOuvert && <ChronoTour onFermer={() => setChronoOuvert(false)} />}
+      {equipesOuvert && <EquipesPicker onFermer={() => setEquipesOuvert(false)} />}
     </>
   )
 }
