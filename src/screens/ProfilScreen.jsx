@@ -16,6 +16,10 @@ export default function ProfilScreen() {
   const [erreur, setErreur] = useState(null)
   const [pickerOuvert, setPickerOuvert] = useState(false)
   const [avatarEnCours, setAvatarEnCours] = useState(false)
+  const [editionPseudo, setEditionPseudo] = useState(false)
+  const [nouveauPseudo, setNouveauPseudo] = useState('')
+  const [pseudoEnCours, setPseudoEnCours] = useState(false)
+  const [erreurPseudo, setErreurPseudo] = useState(null)
   const [vueAmis, setVueAmis] = useState(false)
   const [nbDemandesRecues, setNbDemandesRecues] = useState(0)
   const [daltonienEnCours, setDaltonienEnCours] = useState(false)
@@ -89,6 +93,38 @@ export default function ProfilScreen() {
     rafraichirProfil()
   }
 
+  function ouvrirEditionPseudo() {
+    setNouveauPseudo(profile.pseudo)
+    setErreurPseudo(null)
+    setEditionPseudo(true)
+  }
+
+  function annulerEditionPseudo() {
+    setEditionPseudo(false)
+    setErreurPseudo(null)
+  }
+
+  async function validerPseudo() {
+    const trim = nouveauPseudo.trim()
+    if (trim.length < 2) {
+      setErreurPseudo('Choisis un pseudo un peu plus long.')
+      return
+    }
+    setErreurPseudo(null)
+    setPseudoEnCours(true)
+    const { error } = await supabase
+      .from('profiles')
+      .update({ pseudo: trim })
+      .eq('id', user.id)
+    setPseudoEnCours(false)
+    if (error) {
+      setErreurPseudo(traduireErreurPseudo(error.message))
+      return
+    }
+    rafraichirProfil()
+    setEditionPseudo(false)
+  }
+
   async function changerAvatar(code) {
     setAvatarEnCours(true)
     const { error } = await supabase
@@ -134,7 +170,49 @@ export default function ProfilScreen() {
           <Avatar pseudo={profile.pseudo} avatarUrl={profile.avatar_url} size={60} />
           <div className="avatar-edit-badge">✎</div>
         </button>
-        <div className="profile-name">{profile.pseudo}</div>
+        {editionPseudo ? (
+          <div className="pseudo-edit-row">
+            <input
+              type="text"
+              className="pseudo-edit-input"
+              value={nouveauPseudo}
+              onChange={(e) => setNouveauPseudo(e.target.value)}
+              disabled={pseudoEnCours}
+              autoFocus
+            />
+            {erreurPseudo && <div className="pseudo-edit-erreur">{erreurPseudo}</div>}
+            <div className="pseudo-edit-actions">
+              <button
+                className="pseudo-edit-btn annuler"
+                onClick={annulerEditionPseudo}
+                disabled={pseudoEnCours}
+                type="button"
+              >
+                Annuler
+              </button>
+              <button
+                className="pseudo-edit-btn valider"
+                onClick={validerPseudo}
+                disabled={pseudoEnCours}
+                type="button"
+              >
+                {pseudoEnCours ? '...' : 'Valider'}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="profile-name-row">
+            <div className="profile-name">{profile.pseudo}</div>
+            <button
+              className="pseudo-edit-trigger"
+              onClick={ouvrirEditionPseudo}
+              type="button"
+              aria-label="Modifier le pseudo"
+            >
+              ✎
+            </button>
+          </div>
+        )}
         <div className="profile-level">Niveau {niveau}</div>
         <div className="xp-bar-track" style={{ marginTop: 14 }}>
           <div className="xp-bar-fill" style={{ width: `${Math.min(100, progression * 100)}%` }}></div>
@@ -223,6 +301,13 @@ export default function ProfilScreen() {
       )}
     </div>
   )
+}
+
+function traduireErreurPseudo(message) {
+  if (message.includes('profiles_pseudo_key') || message.includes('duplicate key')) {
+    return 'Ce pseudo est déjà pris, choisis-en un autre.'
+  }
+  return message
 }
 
 function formaterDate(dateIso) {

@@ -56,6 +56,83 @@
   border: 2px solid var(--bg-panel);
 }
 
+.profile-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.pseudo-edit-trigger {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 13px;
+  padding: 2px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.pseudo-edit-trigger:hover { color: var(--gold-bright); }
+
+.pseudo-edit-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.pseudo-edit-input {
+  width: 100%;
+  max-width: 220px;
+  background: #100D0C;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 8px 10px;
+  color: var(--text);
+  font-family: 'Fraunces', serif;
+  font-size: 16px;
+  text-align: center;
+  outline: none;
+}
+
+.pseudo-edit-input:focus { border-color: var(--gold); }
+
+.pseudo-edit-erreur {
+  font-size: 11.5px;
+  color: var(--error-text);
+}
+
+.pseudo-edit-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.pseudo-edit-btn {
+  padding: 7px 16px;
+  border-radius: 3px;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.pseudo-edit-btn.annuler {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+}
+
+.pseudo-edit-btn.annuler:hover:not(:disabled) { border-color: var(--error); color: var(--error-text); }
+
+.pseudo-edit-btn.valider {
+  background: var(--gold);
+  border: 1px solid var(--gold);
+  color: #1A1410;
+}
+
+.pseudo-edit-btn.valider:hover:not(:disabled) { background: var(--gold-bright); }
+.pseudo-edit-btn:disabled { opacity: 0.6; cursor: default; }
+
 .profile-level {
   font-size: 12.5px;
   color: var(--text-dim);
