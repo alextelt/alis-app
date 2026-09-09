@@ -9,6 +9,7 @@ import AlisScreen from './screens/AlisScreen'
 import OutilsScreen from './screens/OutilsScreen'
 import ProfilScreen from './screens/ProfilScreen'
 import AdminScreen from './screens/AdminScreen'
+import ReinitialiserMdpScreen from './screens/ReinitialiserMdpScreen'
 import { appliquerTheme } from './themes'
 import './theme.css'
 
@@ -20,6 +21,11 @@ function AppContent() {
     document.documentElement.dataset.daltonien = profile?.mode_daltonien ? 'true' : 'false'
     appliquerTheme(profile?.theme || 'medieval')
   }, [profile?.mode_daltonien, profile?.theme])
+
+  // Lien de réinitialisation de mot de passe reçu par email : prioritaire sur tout le reste
+  if (window.location.pathname === '/reinitialiser-mdp') {
+    return <ReinitialiserMdpScreen />
+  }
 
   // Session pas encore vérifiée (tout premier chargement)
   if (session === undefined) {

@@ -66,6 +66,13 @@ export function AuthProvider({ children }) {
     await supabase.auth.signOut()
   }
 
+  const demanderReinitialisation = async (email) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + '/reinitialiser-mdp',
+    })
+    return { error }
+  }
+
   const rafraichirProfil = useCallback(() => {
     if (session?.user) chargerProfil(session.user.id)
   }, [session, chargerProfil])
@@ -81,6 +88,7 @@ export function AuthProvider({ children }) {
     inscription,
     connexion,
     deconnexion,
+    demanderReinitialisation,
     rafraichirProfil,
   }
 
