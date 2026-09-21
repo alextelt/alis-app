@@ -6,6 +6,7 @@ import { THEMES } from '../themes'
 import Avatar from '../components/Avatar'
 import AvatarPicker from '../components/AvatarPicker'
 import AmisScreen from './AmisScreen'
+import AideEcran from '../components/AideEcran'
 import './ProfilScreen.css'
 
 export default function ProfilScreen() {
@@ -22,6 +23,7 @@ export default function ProfilScreen() {
   const [pseudoEnCours, setPseudoEnCours] = useState(false)
   const [erreurPseudo, setErreurPseudo] = useState(null)
   const [vueAmis, setVueAmis] = useState(false)
+  const [aideOuverte, setAideOuverte] = useState(false)
   const [nbDemandesRecues, setNbDemandesRecues] = useState(0)
   const [daltonienEnCours, setDaltonienEnCours] = useState(false)
   const [themeEnCours, setThemeEnCours] = useState(false)
@@ -366,12 +368,18 @@ export default function ProfilScreen() {
         {nbDemandesRecues > 0 && <span className="amis-badge">{nbDemandesRecues}</span>}
       </button>
 
+      <button className="amis-btn" onClick={() => setAideOuverte(true)} type="button" style={{ marginTop: '10px' }}>
+        Aide / Comment jouer
+      </button>
+
       <button className="logout-btn" onClick={deconnexion}>Se déconnecter</button>
 
       <div className="section-title danger-title">Zone dangereuse</div>
       <button className="delete-account-btn" onClick={ouvrirSuppression} type="button">
         Supprimer mon compte
       </button>
+
+      {aideOuverte && <AideEcran onFermer={() => setAideOuverte(false)} />}
 
       {pickerOuvert && (
         <AvatarPicker
