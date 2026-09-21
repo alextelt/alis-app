@@ -76,6 +76,8 @@
   --text-dim: #8B5CA8;
   --error: #DB2777;
   --error-text: #C2185B;
+  --vert: #10B981;
+  --vert-bright: #34D399;
 }
 
 [data-theme="licorne"] body {

@@ -22,8 +22,6 @@ export function appliquerTheme(themeId) {
     const accent = ACCENTS_LICORNE[Math.floor(Math.random() * ACCENTS_LICORNE.length)]
     document.documentElement.style.setProperty('--gold', accent.gold)
     document.documentElement.style.setProperty('--gold-bright', accent.goldBright)
-    document.documentElement.style.setProperty('--vert', accent.gold)
-    document.documentElement.style.setProperty('--vert-bright', accent.goldBright)
   } else {
     document.documentElement.style.removeProperty('--gold')
     document.documentElement.style.removeProperty('--gold-bright')
