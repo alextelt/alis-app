@@ -36,18 +36,11 @@ export function useNotificationCounts(user, estAdmin) {
     }
 
     if (estAdmin) {
-      const [comptesRes, quetesRes] = await Promise.all([
-        supabase
-          .from('profiles')
-          .select('id', { count: 'exact', head: true })
-          .eq('statut_validation', 'en_attente'),
-        supabase
-          .from('quetes')
-          .select('id', { count: 'exact', head: true })
-          .eq('statut_catalogue', 'proposée'),
-      ])
-      const total = (comptesRes.count ?? 0) + (quetesRes.count ?? 0)
-      setElementsAdminEnAttente(total)
+      const { count } = await supabase
+        .from('quetes')
+        .select('id', { count: 'exact', head: true })
+        .eq('statut_catalogue', 'proposée')
+      setElementsAdminEnAttente(count ?? 0)
     } else {
       setElementsAdminEnAttente(0)
     }

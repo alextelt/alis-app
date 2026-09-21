@@ -66,9 +66,10 @@ export default function BottomNav({ ecranActif, onChangerEcran }) {
           type="button"
         >
           <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 2l8 4v6c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10V6l8-4z" />
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
           </svg>
-          Admin
+          Gérer
           {elementsAdminEnAttente > 0 && <span className="nav-badge">{elementsAdminEnAttente}</span>}
         </button>
       )}
