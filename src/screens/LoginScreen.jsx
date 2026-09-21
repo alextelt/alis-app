@@ -214,7 +214,7 @@ export default function LoginScreen() {
                   </button>
 
                   <div className="notice">
-                    ⏳ Après inscription, un admin doit approuver ton compte avant que tu puisses accéder aux quêtes.
+                    📧 Après inscription, confirme ton compte via le lien reçu par email avant de pouvoir te connecter.
                   </div>
                 </>
               )}
