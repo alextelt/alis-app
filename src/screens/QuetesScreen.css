@@ -17,9 +17,9 @@
 
 .soiree-banner-btn {
   flex-shrink: 0;
-  background: var(--gold);
-  border: 1px solid var(--gold);
-  color: #1A1410;
+  background: var(--vert);
+  border: 1px solid var(--vert);
+  color: #E8DCC4;
   font-size: 12px;
   font-weight: 500;
   padding: 7px 12px;
@@ -27,7 +27,7 @@
   cursor: pointer;
 }
 
-.soiree-banner-btn:hover { background: var(--gold-bright); }
+.soiree-banner-btn:hover { background: var(--vert-bright); }
 
 button.soiree-banner.active {
   width: 100%;
