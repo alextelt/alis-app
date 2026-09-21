@@ -104,7 +104,7 @@ button.soiree-banner.active:hover { border-color: var(--gold); }
 .field textarea,
 .field select {
   width: 100%;
-  background: #100D0C;
+  background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 3px;
   padding: 11px 12px;

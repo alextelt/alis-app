@@ -75,7 +75,7 @@
 
 .dice-custom-row input {
   flex: 1;
-  background: #100D0C;
+  background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 3px;
   padding: 10px 12px;
