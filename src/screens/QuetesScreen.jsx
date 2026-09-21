@@ -160,18 +160,18 @@ export default function QuetesScreen() {
               type="button"
             >
               <span className="soiree-banner-dot" />
-              Soirée en cours · {nbParticipants} participant{nbParticipants > 1 ? 's' : ''}
+              Session en cours · {nbParticipants} participant{nbParticipants > 1 ? 's' : ''}
               {nbEnAttenteVote > 0 && <span className="soiree-banner-badge">{nbEnAttenteVote}</span>}
             </button>
           ) : (
             <div className="soiree-banner">
-              <span>Aucune soirée en cours</span>
+              <span>Aucune session en cours</span>
               <button
                 className="soiree-banner-btn"
                 onClick={() => setSoireeEcranOuvert(true)}
                 type="button"
               >
-                Créer une soirée
+                Créer une session
               </button>
             </div>
           )
@@ -347,7 +347,7 @@ function CarteQuete({ quete, etat, onValider, validationEnCours, soireeActive })
             disabled={validationEnCours || !soireeActive}
           >
             {!soireeActive
-              ? 'Rejoins une soirée pour valider une quête'
+              ? 'Rejoins une session pour valider une quête'
               : validationEnCours
                 ? 'Validation...'
                 : 'Valider une quête'}

@@ -318,7 +318,7 @@ export default function ChronoTour({ onFermer }) {
           <input
             type="text"
             className="ct-input"
-            placeholder="Ex: Soirée jeux de société"
+            placeholder="Ex: Session jeux de société"
             value={nomPartie}
             onChange={(e) => setNomPartie(e.target.value)}
           />

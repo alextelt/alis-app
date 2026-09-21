@@ -385,3 +385,63 @@
 }
 
 .logout-btn:hover { border-color: var(--error); color: var(--error-text); }
+
+.danger-title {
+  color: var(--error-text);
+  margin-top: 22px;
+}
+
+.delete-account-btn {
+  width: 100%;
+  background: none;
+  border: 1px solid var(--error);
+  color: var(--error-text);
+  padding: 11px;
+  border-radius: 3px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.delete-account-btn:hover { background: rgba(122, 49, 49, 0.15); }
+
+.delete-modal-field {
+  margin: 18px 0;
+  text-align: left;
+}
+
+.delete-modal-field label {
+  display: block;
+  font-size: 12.5px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+.delete-modal-field input {
+  width: 100%;
+  background: #100D0C;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 11px 12px;
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 14.5px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.delete-modal-field input:focus { border-color: var(--gold); }
+
+.delete-modal-erreur {
+  font-size: 12.5px;
+  color: var(--error-text);
+  margin-bottom: 4px;
+}
+
+.btn-supprimer {
+  background: var(--error);
+  border: 1px solid var(--error);
+  color: #F0DCD4;
+}
+
+.btn-supprimer:hover:not(:disabled) { background: #8A3A3A; }
+.btn-supprimer:disabled { opacity: 0.6; cursor: default; }

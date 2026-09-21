@@ -202,7 +202,7 @@ export default function SoireeEcran({ onFermer }) {
   }
 
   async function terminerSoiree() {
-    if (!confirm('Terminer cette soirée ?')) return
+    if (!confirm('Terminer cette session ?')) return
     setActionEnCours(true)
     const { error } = await supabase
       .from('soirees')
@@ -210,7 +210,7 @@ export default function SoireeEcran({ onFermer }) {
       .eq('id', soireeActive.id)
     setActionEnCours(false)
     if (error) {
-      alert('Impossible de terminer la soirée : ' + error.message)
+      alert('Impossible de terminer la session : ' + error.message)
       return
     }
     recharger()
@@ -219,12 +219,12 @@ export default function SoireeEcran({ onFermer }) {
   async function quitterSoiree() {
     const moi = participants.find((p) => p.profileId === user.id)
     if (!moi) return
-    if (!confirm('Quitter cette soirée ?')) return
+    if (!confirm('Quitter cette session ?')) return
     setActionEnCours(true)
     const { error } = await supabase.from('soiree_participants').delete().eq('id', moi.id)
     setActionEnCours(false)
     if (error) {
-      alert('Impossible de quitter la soirée : ' + error.message)
+      alert('Impossible de quitter la session : ' + error.message)
       return
     }
     recharger()
@@ -267,10 +267,10 @@ export default function SoireeEcran({ onFermer }) {
 
       <div className="se-content">
         {chargement ? (
-          <div className="loading-screen">Chargement de la soirée...</div>
+          <div className="loading-screen">Chargement de la session...</div>
         ) : soireeActive ? (
           <>
-            <h2 className="se-title">Soirée en cours</h2>
+            <h2 className="se-title">Session en cours</h2>
             <div className="se-subtitle">
               {participants.length} participant{participants.length > 1 ? 's' : ''}
             </div>
@@ -344,7 +344,7 @@ export default function SoireeEcran({ onFermer }) {
                                             {estMoi ? (
                                               dejaUtilisee ? (
                                                 <button className="se-use-btn" disabled>
-                                                  Déjà utilisée cette soirée
+                                                  Déjà utilisée cette session
                                                 </button>
                                               ) : (
                                                 <button
@@ -460,17 +460,17 @@ export default function SoireeEcran({ onFermer }) {
 
             {peutTerminer ? (
               <button className="se-danger-btn" onClick={terminerSoiree} disabled={actionEnCours} type="button">
-                Terminer la soirée
+                Terminer la session
               </button>
             ) : (
               <button className="se-danger-btn" onClick={quitterSoiree} disabled={actionEnCours} type="button">
-                Quitter la soirée
+                Quitter la session
               </button>
             )}
           </>
         ) : (
           <>
-            <h2 className="se-title">Créer une soirée</h2>
+            <h2 className="se-title">Créer une session</h2>
             <div className="se-subtitle">
               Sélectionne au moins 2 amis présents (toi + eux = 3 minimum).
             </div>
@@ -479,7 +479,7 @@ export default function SoireeEcran({ onFermer }) {
               <div className="se-competences-note">Chargement de tes amis...</div>
             ) : amis.length === 0 ? (
               <div className="empty-state">
-                Tu n'as pas encore d'amis. Ajoute-en depuis ton profil pour créer une soirée.
+                Tu n'as pas encore d'amis. Ajoute-en depuis ton profil pour créer une session.
               </div>
             ) : (
               <div className="se-amis-list">
@@ -515,7 +515,7 @@ export default function SoireeEcran({ onFermer }) {
               disabled={selection.length < 2 || creationEnCours}
               type="button"
             >
-              {creationEnCours ? 'Création...' : 'Créer la soirée'}
+              {creationEnCours ? 'Création...' : 'Créer la session'}
             </button>
           </>
         )}

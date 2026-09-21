@@ -23,6 +23,9 @@ export default function LoginScreen() {
   const [chargementOubli, setChargementOubli] = useState(false)
   const [messageOubli, setMessageOubli] = useState(null)
 
+  // Confirmation par email après inscription
+  const [messageInscription, setMessageInscription] = useState(null)
+
   async function gererConnexion(e) {
     e.preventDefault()
     setErreur(null)
@@ -37,6 +40,7 @@ export default function LoginScreen() {
   async function gererInscription(e) {
     e.preventDefault()
     setErreur(null)
+    setMessageInscription(null)
 
     if (pseudo.trim().length < 2) {
       setErreur('Choisis un pseudo un peu plus long.')
@@ -48,13 +52,17 @@ export default function LoginScreen() {
     }
 
     setChargement(true)
-    const { error } = await inscription(emailInscription, mdpInscription, pseudo.trim())
+    const { data, error } = await inscription(emailInscription, mdpInscription, pseudo.trim())
     setChargement(false)
     if (error) {
       setErreur(traduireErreur(error.message))
+      return
     }
-    // Si succès : le AuthContext détecte automatiquement la nouvelle session
-    // et l'appli affichera l'écran "en attente d'approbation"
+    if (!data?.session) {
+      // Supabase attend la confirmation par email avant de créer une session
+      setMessageInscription('Vérifie ta boîte mail (et tes spams) pour confirmer ton compte, puis connecte-toi.')
+    }
+    // Si une session existe malgré tout : le AuthContext la détecte automatiquement
   }
 
   function ouvrirMotDePasseOublie() {
@@ -165,45 +173,51 @@ export default function LoginScreen() {
                 </form>
               ) : (
             <form onSubmit={gererInscription}>
-              <div className="field">
-                <label>Pseudo</label>
-                <input
-                  type="text"
-                  placeholder="Ton nom de joueur"
-                  value={pseudo}
-                  onChange={(e) => setPseudo(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="field">
-                <label>Email</label>
-                <input
-                  type="email"
-                  placeholder="toi@exemple.com"
-                  value={emailInscription}
-                  onChange={(e) => setEmailInscription(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="field">
-                <label>Mot de passe</label>
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  value={mdpInscription}
-                  onChange={(e) => setMdpInscription(e.target.value)}
-                  required
-                />
-                <div className="hint">6 caractères minimum</div>
-              </div>
-              {erreur && <div className="form-error">{erreur}</div>}
-              <button type="submit" className="submit" disabled={chargement}>
-                {chargement ? 'Création...' : 'Créer mon compte'}
-              </button>
+              {messageInscription ? (
+                <div className="notice">{messageInscription}</div>
+              ) : (
+                <>
+                  <div className="field">
+                    <label>Pseudo</label>
+                    <input
+                      type="text"
+                      placeholder="Ton nom de joueur"
+                      value={pseudo}
+                      onChange={(e) => setPseudo(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="field">
+                    <label>Email</label>
+                    <input
+                      type="email"
+                      placeholder="toi@exemple.com"
+                      value={emailInscription}
+                      onChange={(e) => setEmailInscription(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="field">
+                    <label>Mot de passe</label>
+                    <input
+                      type="password"
+                      placeholder="••••••••"
+                      value={mdpInscription}
+                      onChange={(e) => setMdpInscription(e.target.value)}
+                      required
+                    />
+                    <div className="hint">6 caractères minimum</div>
+                  </div>
+                  {erreur && <div className="form-error">{erreur}</div>}
+                  <button type="submit" className="submit" disabled={chargement}>
+                    {chargement ? 'Création...' : 'Créer mon compte'}
+                  </button>
 
-              <div className="notice">
-                ⏳ Après inscription, un admin doit approuver ton compte avant que tu puisses accéder aux quêtes.
-              </div>
+                  <div className="notice">
+                    ⏳ Après inscription, un admin doit approuver ton compte avant que tu puisses accéder aux quêtes.
+                  </div>
+                </>
+              )}
             </form>
               )}
             </>

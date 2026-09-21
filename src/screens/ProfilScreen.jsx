@@ -25,6 +25,10 @@ export default function ProfilScreen() {
   const [nbDemandesRecues, setNbDemandesRecues] = useState(0)
   const [daltonienEnCours, setDaltonienEnCours] = useState(false)
   const [themeEnCours, setThemeEnCours] = useState(false)
+  const [modaleSuppressionOuverte, setModaleSuppressionOuverte] = useState(false)
+  const [mdpSuppression, setMdpSuppression] = useState('')
+  const [suppressionEnCours, setSuppressionEnCours] = useState(false)
+  const [erreurSuppression, setErreurSuppression] = useState(null)
 
   const charger = useCallback(async () => {
     setErreur(null)
@@ -107,6 +111,47 @@ export default function ProfilScreen() {
       return
     }
     rafraichirProfil()
+  }
+
+  function ouvrirSuppression() {
+    setMdpSuppression('')
+    setErreurSuppression(null)
+    setModaleSuppressionOuverte(true)
+  }
+
+  function fermerSuppression() {
+    if (suppressionEnCours) return
+    setModaleSuppressionOuverte(false)
+    setMdpSuppression('')
+    setErreurSuppression(null)
+  }
+
+  async function confirmerSuppression() {
+    if (!mdpSuppression) {
+      setErreurSuppression('Entre ton mot de passe pour confirmer.')
+      return
+    }
+    setErreurSuppression(null)
+    setSuppressionEnCours(true)
+
+    const { error: erreurAuth } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: mdpSuppression,
+    })
+    if (erreurAuth) {
+      setSuppressionEnCours(false)
+      setErreurSuppression('Mot de passe incorrect.')
+      return
+    }
+
+    const { error: erreurRpc } = await supabase.rpc('supprimer_mon_compte')
+    setSuppressionEnCours(false)
+    if (erreurRpc) {
+      setErreurSuppression('Impossible de supprimer le compte : ' + erreurRpc.message)
+      return
+    }
+
+    await supabase.auth.signOut()
   }
 
   function ouvrirEditionPseudo() {
@@ -266,7 +311,7 @@ export default function ProfilScreen() {
             </div>
           ))}
           <div className="unlocked-note">
-            Utilisables pendant les soirées, dans la limite du budget fixé pour chacune.
+            Utilisables pendant les sessions, dans la limite du budget fixé pour chacune.
           </div>
         </>
       )}
@@ -323,6 +368,11 @@ export default function ProfilScreen() {
 
       <button className="logout-btn" onClick={deconnexion}>Se déconnecter</button>
 
+      <div className="section-title danger-title">Zone dangereuse</div>
+      <button className="delete-account-btn" onClick={ouvrirSuppression} type="button">
+        Supprimer mon compte
+      </button>
+
       {pickerOuvert && (
         <AvatarPicker
           avatarActuel={profile.avatar_url}
@@ -330,6 +380,38 @@ export default function ProfilScreen() {
           onFermer={() => setPickerOuvert(false)}
           enCours={avatarEnCours}
         />
+      )}
+
+      {modaleSuppressionOuverte && (
+        <div className="overlay" onClick={fermerSuppression}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Supprimer ton compte ?</h2>
+            <p>
+              Cette action est irréversible : toutes tes données (quêtes, votes, Alis, amis...)
+              seront définitivement supprimées.
+            </p>
+            <div className="delete-modal-field">
+              <label>Mot de passe</label>
+              <input
+                type="password"
+                placeholder="••••••••"
+                value={mdpSuppression}
+                onChange={(e) => setMdpSuppression(e.target.value)}
+                disabled={suppressionEnCours}
+                autoFocus
+              />
+            </div>
+            {erreurSuppression && <div className="delete-modal-erreur">{erreurSuppression}</div>}
+            <div className="modal-actions">
+              <button className="btn-annuler" onClick={fermerSuppression} disabled={suppressionEnCours}>
+                Annuler
+              </button>
+              <button className="btn-supprimer" onClick={confirmerSuppression} disabled={suppressionEnCours}>
+                {suppressionEnCours ? '...' : 'Supprimer définitivement'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

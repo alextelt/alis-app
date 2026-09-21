@@ -95,7 +95,7 @@ export default function VotesScreen() {
 
       <div className="page-content">
         {!soireeActive && (
-          <div className="empty-state">Rejoins une soirée pour voir les votes en cours.</div>
+          <div className="empty-state">Rejoins une session pour voir les votes en cours.</div>
         )}
 
         {soireeActive && tentatives.length === 0 && (

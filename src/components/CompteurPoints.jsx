@@ -259,7 +259,7 @@ export default function CompteurPoints({ onFermer }) {
           <input
             type="text"
             className="cp-input"
-            placeholder="Ex: Soirée jeux"
+            placeholder="Ex: Session jeux"
             value={nomPartie}
             onChange={(e) => setNomPartie(e.target.value)}
           />

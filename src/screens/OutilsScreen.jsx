@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import LanceurDes from '../components/LanceurDes'
 import PremierJoueurPicker from '../components/PremierJoueurPicker'
 import CompteurPoints from '../components/CompteurPoints'
@@ -7,6 +7,8 @@ import ChronoTour from '../components/ChronoTour'
 import EquipesPicker from '../components/EquipesPicker'
 import './OutilsScreen.css'
 
+const CLE_OUTIL_ACTIF = 'alis_outil_actif'
+
 export default function OutilsScreen() {
   const [desOuvert, setDesOuvert] = useState(false)
   const [pickerOuvert, setPickerOuvert] = useState(false)
@@ -14,6 +16,31 @@ export default function OutilsScreen() {
   const [dessinOuvert, setDessinOuvert] = useState(false)
   const [chronoOuvert, setChronoOuvert] = useState(false)
   const [equipesOuvert, setEquipesOuvert] = useState(false)
+
+  // Rouvre automatiquement l'outil actif au montage (ex: après une mise en veille qui a rechargé la page)
+  useEffect(() => {
+    const outilSauvegarde = localStorage.getItem(CLE_OUTIL_ACTIF)
+    if (outilSauvegarde === 'des') setDesOuvert(true)
+    else if (outilSauvegarde === 'premierJoueur') setPickerOuvert(true)
+    else if (outilSauvegarde === 'compteur') setCompteurOuvert(true)
+    else if (outilSauvegarde === 'dessin') setDessinOuvert(true)
+    else if (outilSauvegarde === 'chrono') setChronoOuvert(true)
+    else if (outilSauvegarde === 'equipes') setEquipesOuvert(true)
+  }, [])
+
+  // Garde localStorage synchronisé avec l'outil actuellement ouvert
+  useEffect(() => {
+    let actif = null
+    if (desOuvert) actif = 'des'
+    else if (pickerOuvert) actif = 'premierJoueur'
+    else if (compteurOuvert) actif = 'compteur'
+    else if (dessinOuvert) actif = 'dessin'
+    else if (chronoOuvert) actif = 'chrono'
+    else if (equipesOuvert) actif = 'equipes'
+
+    if (actif) localStorage.setItem(CLE_OUTIL_ACTIF, actif)
+    else localStorage.removeItem(CLE_OUTIL_ACTIF)
+  }, [desOuvert, pickerOuvert, compteurOuvert, dessinOuvert, chronoOuvert, equipesOuvert])
 
   return (
     <>
