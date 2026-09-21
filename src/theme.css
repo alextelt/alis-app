@@ -139,6 +139,25 @@ header.app-header {
   color: var(--text-dim);
 }
 
+.aide-header-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--gold);
+  color: #1A1410;
+  border: none;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.aide-header-btn:hover { background: var(--gold-bright); }
+
 .xp-row {
   display: flex;
   align-items: baseline;

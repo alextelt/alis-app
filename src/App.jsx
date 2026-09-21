@@ -10,12 +10,14 @@ import OutilsScreen from './screens/OutilsScreen'
 import ProfilScreen from './screens/ProfilScreen'
 import AdminScreen from './screens/AdminScreen'
 import ReinitialiserMdpScreen from './screens/ReinitialiserMdpScreen'
+import AideEcran from './components/AideEcran'
 import { appliquerTheme } from './themes'
 import './theme.css'
 
 function AppContent() {
   const { session, profile, profileLoading, estConnecte, estApprouve } = useAuth()
   const [ecranActif, setEcranActif] = useState('quetes')
+  const [aideOuverte, setAideOuverte] = useState(false)
 
   useEffect(() => {
     document.documentElement.dataset.daltonien = profile?.mode_daltonien ? 'true' : 'false'
@@ -72,6 +74,9 @@ function AppContent() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div className="pseudo">{profile.pseudo}</div>
             <Avatar pseudo={profile.pseudo} avatarUrl={profile.avatar_url} size={26} />
+            <button className="aide-header-btn" onClick={() => setAideOuverte(true)} type="button" aria-label="Aide">
+              ?
+            </button>
           </div>
         </div>
       </header>
@@ -79,6 +84,8 @@ function AppContent() {
       {ecrans[ecranActif] ?? <QuetesScreen />}
 
       <BottomNav ecranActif={ecranActif} onChangerEcran={setEcranActif} />
+
+      {aideOuverte && <AideEcran onFermer={() => setAideOuverte(false)} />}
     </div>
   )
 }
